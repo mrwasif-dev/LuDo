@@ -1,5 +1,5 @@
 /* ============================================
-   PRO CALL - Complete Calling App Styles
+   COMPLETE CALL & MESSAGING APP STYLES
    ============================================ */
 
 * {
@@ -18,7 +18,6 @@
     --text-primary: #ffffff;
     --text-secondary: rgba(255,255,255,0.7);
     --border-color: rgba(255,255,255,0.1);
-    --shadow: 0 20px 60px rgba(0,0,0,0.5);
     --radius: 16px;
     --transition: all 0.3s ease;
     --success: #2ecc71;
@@ -31,23 +30,181 @@ body {
     background: var(--bg-primary);
     color: var(--text-primary);
     min-height: 100vh;
-    overflow: hidden;
 }
 
 /* ---------- SCROLLBAR ---------- */
-::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar { width: 6px; }
 ::-webkit-scrollbar-track { background: rgba(255,255,255,0.03); border-radius: 10px; }
 ::-webkit-scrollbar-thumb { background: var(--primary); border-radius: 10px; }
 
-/* ---------- APP CONTAINER ---------- */
+/* ---------- LOGIN ---------- */
+.login-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    padding: 20px;
+    background: radial-gradient(ellipse at center, #1a1a2e 0%, #0a0e1a 100%);
+}
+
+.login-card {
+    background: var(--bg-card);
+    backdrop-filter: blur(20px);
+    border: 1px solid var(--border-color);
+    border-radius: 24px;
+    padding: 40px;
+    width: 100%;
+    max-width: 420px;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+    animation: slideUp 0.5s ease;
+}
+
+.login-header {
+    text-align: center;
+    margin-bottom: 30px;
+}
+
+.login-header .logo {
+    font-size: 32px;
+    font-weight: 700;
+}
+
+.login-header .logo i {
+    color: var(--primary);
+    margin-right: 10px;
+}
+
+.login-header .logo span {
+    background: linear-gradient(135deg, var(--primary), var(--secondary));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.login-header p {
+    color: var(--text-secondary);
+    font-size: 14px;
+    margin-top: 5px;
+}
+
+.form-group {
+    margin-bottom: 18px;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 6px;
+    font-size: 13px;
+    color: var(--text-secondary);
+}
+
+.form-group input {
+    width: 100%;
+    padding: 12px 16px;
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    background: rgba(255,255,255,0.05);
+    color: var(--text-primary);
+    font-size: 14px;
+    transition: var(--transition);
+}
+
+.form-group input:focus {
+    outline: none;
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(247,151,30,0.1);
+}
+
+.btn-primary {
+    width: 100%;
+    padding: 14px;
+    border: none;
+    border-radius: 12px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    background: linear-gradient(135deg, var(--primary), var(--secondary));
+    color: #0a0e1a;
+    transition: var(--transition);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+}
+
+.btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(247,151,30,0.3);
+}
+
+.login-footer {
+    text-align: center;
+    margin-top: 20px;
+    color: var(--text-secondary);
+}
+
+.login-footer a {
+    color: var(--primary);
+    text-decoration: none;
+    cursor: pointer;
+}
+
+.error-message {
+    margin-top: 15px;
+    padding: 10px;
+    border-radius: 8px;
+    background: rgba(231,76,60,0.2);
+    color: var(--danger);
+    display: none;
+    text-align: center;
+}
+
+/* ---------- MODAL ---------- */
+.modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.7);
+    backdrop-filter: blur(10px);
+    z-index: 1000;
+    justify-content: center;
+    align-items: center;
+}
+
+.modal-content {
+    background: var(--bg-secondary);
+    border-radius: 24px;
+    padding: 30px;
+    max-width: 450px;
+    width: 90%;
+    border: 1px solid var(--border-color);
+    animation: scaleUp 0.3s ease;
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.close-modal {
+    font-size: 28px;
+    background: none;
+    border: none;
+    color: var(--text-secondary);
+    cursor: pointer;
+}
+
+/* ---------- APP ---------- */
 .app-container {
     display: grid;
-    grid-template-columns: 280px 1fr;
+    grid-template-columns: 260px 1fr;
     height: 100vh;
     max-width: 1400px;
     margin: 0 auto;
-    background: var(--bg-primary);
-    position: relative;
 }
 
 /* ---------- SIDEBAR ---------- */
@@ -57,32 +214,22 @@ body {
     padding: 20px;
     display: flex;
     flex-direction: column;
-    gap: 20px;
     height: 100vh;
     position: sticky;
     top: 0;
 }
 
-.sidebar-header {
-    display: flex;
-    flex-direction: column;
-    gap: 15px;
-}
-
-.logo {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    font-size: 22px;
+.sidebar-header .logo {
+    font-size: 20px;
     font-weight: 700;
+    margin-bottom: 20px;
 }
 
-.logo i {
+.sidebar-header .logo i {
     color: var(--primary);
-    font-size: 28px;
 }
 
-.logo span {
+.sidebar-header .logo span {
     background: linear-gradient(135deg, var(--primary), var(--secondary));
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
@@ -96,6 +243,7 @@ body {
     background: var(--bg-card);
     border-radius: var(--radius);
     border: 1px solid var(--border-color);
+    margin-bottom: 20px;
 }
 
 .user-profile img {
@@ -107,7 +255,6 @@ body {
 
 .user-info h4 {
     font-size: 14px;
-    font-weight: 600;
 }
 
 .user-info span {
@@ -115,12 +262,11 @@ body {
     color: var(--success);
 }
 
-/* ---------- SIDEBAR NAV ---------- */
 .sidebar-nav {
+    flex: 1;
     display: flex;
     flex-direction: column;
     gap: 4px;
-    flex: 1;
 }
 
 .sidebar-nav a {
@@ -132,13 +278,6 @@ body {
     color: var(--text-secondary);
     text-decoration: none;
     transition: var(--transition);
-    font-size: 14px;
-    font-weight: 500;
-}
-
-.sidebar-nav a i {
-    width: 20px;
-    font-size: 16px;
 }
 
 .sidebar-nav a:hover {
@@ -183,67 +322,188 @@ body {
     flex-direction: column;
     height: 100vh;
     overflow: hidden;
+    position: relative;
 }
 
-.main-header {
+.section-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 15px 30px;
+    padding: 15px 25px;
     background: var(--bg-secondary);
     border-bottom: 1px solid var(--border-color);
-    flex-wrap: wrap;
-    gap: 10px;
 }
 
-.header-search {
-    display: flex;
-    align-items: center;
-    background: var(--bg-card);
-    border-radius: 10px;
-    padding: 8px 16px;
-    border: 1px solid var(--border-color);
+.section-header h2 {
+    font-size: 20px;
+}
+
+.content-section {
     flex: 1;
-    max-width: 400px;
+    overflow-y: auto;
+    padding: 15px 25px;
+    display: none;
 }
 
-.header-search i {
-    color: var(--text-secondary);
-    margin-right: 10px;
+.content-section.active {
+    display: block;
 }
 
-.header-search input {
-    background: transparent;
-    border: none;
-    color: var(--text-primary);
-    font-size: 14px;
-    width: 100%;
-    outline: none;
-}
-
-.header-search input::placeholder {
-    color: var(--text-secondary);
-}
-
-.header-actions {
+/* ---------- CHAT LIST ---------- */
+.chat-item, .call-item, .contact-item {
     display: flex;
-    gap: 10px;
     align-items: center;
+    gap: 12px;
+    padding: 12px 16px;
+    background: var(--bg-card);
+    border-radius: var(--radius);
+    border: 1px solid var(--border-color);
+    margin-bottom: 8px;
+    cursor: pointer;
+    transition: var(--transition);
+}
+
+.chat-item:hover, .call-item:hover, .contact-item:hover {
+    background: rgba(255,255,255,0.08);
+    transform: translateX(5px);
+}
+
+.chat-item img, .call-item img, .contact-item img {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+.chat-info, .call-info, .contact-info {
+    flex: 1;
+}
+
+.chat-info h4, .call-info h4, .contact-info h4 {
+    font-size: 14px;
+}
+
+.chat-info span, .call-info span, .contact-info span {
+    font-size: 12px;
+    color: var(--text-secondary);
+}
+
+.chat-time {
+    font-size: 11px;
+    color: var(--text-secondary);
+}
+
+.unread-badge {
+    background: var(--primary);
+    color: #0a0e1a;
+    padding: 2px 8px;
+    border-radius: 50%;
+    font-size: 11px;
+    font-weight: 700;
+}
+
+.call-actions {
+    display: flex;
+    gap: 6px;
+}
+
+.call-actions button {
+    width: 34px;
+    height: 34px;
+    border: none;
+    border-radius: 50%;
+    cursor: pointer;
+    transition: var(--transition);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.call-btn-action {
+    background: rgba(46,213,115,0.15);
+    color: var(--success);
+}
+
+.call-btn-action:hover {
+    background: rgba(46,213,115,0.25);
+}
+
+.video-btn {
+    background: rgba(52,152,219,0.15);
+    color: #3498db;
+}
+
+.video-btn:hover {
+    background: rgba(52,152,219,0.25);
+}
+
+.delete-btn {
+    background: rgba(231,76,60,0.1);
+    color: var(--danger);
+}
+
+.delete-btn:hover {
+    background: rgba(231,76,60,0.2);
+}
+
+/* ---------- CHAT WINDOW ---------- */
+.chat-window {
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 100%;
+    height: 100%;
+    background: var(--bg-primary);
+    display: flex;
+    flex-direction: column;
+    z-index: 100;
+}
+
+.chat-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 20px;
+    background: var(--bg-secondary);
+    border-bottom: 1px solid var(--border-color);
+}
+
+.chat-user-info {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.chat-user-info img {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+.chat-user-info h4 {
+    font-size: 14px;
+}
+
+.chat-user-info span {
+    font-size: 12px;
+    color: var(--success);
+}
+
+.chat-actions {
+    display: flex;
+    gap: 8px;
 }
 
 .icon-btn {
-    position: relative;
-    width: 40px;
-    height: 40px;
+    width: 36px;
+    height: 36px;
     border: none;
     border-radius: 50%;
     background: var(--bg-card);
     color: var(--text-secondary);
     cursor: pointer;
     transition: var(--transition);
-    display: flex;
-    align-items: center;
-    justify-content: center;
 }
 
 .icon-btn:hover {
@@ -251,156 +511,100 @@ body {
     color: var(--text-primary);
 }
 
-.icon-btn .badge {
-    position: absolute;
-    top: -5px;
-    right: -5px;
-    background: var(--danger);
-    color: #fff;
-    font-size: 10px;
-    padding: 2px 6px;
-    border-radius: 50%;
-    min-width: 18px;
-}
-
-/* ---------- CONTENT SECTIONS ---------- */
-.content-section {
-    display: none;
-    padding: 20px 30px;
+.chat-messages {
     flex: 1;
+    padding: 15px 20px;
     overflow-y: auto;
-}
-
-.content-section.active {
-    display: block;
-}
-
-.section-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 20px;
-}
-
-.section-header h2 {
-    font-size: 22px;
-    font-weight: 700;
-}
-
-.btn-primary {
-    padding: 10px 20px;
-    border: none;
-    border-radius: 10px;
-    background: linear-gradient(135deg, var(--primary), var(--secondary));
-    color: #0a0e1a;
-    font-weight: 600;
-    cursor: pointer;
-    transition: var(--transition);
-    display: flex;
-    align-items: center;
-    gap: 8px;
-}
-
-.btn-primary:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 8px 25px rgba(247,151,30,0.3);
-}
-
-/* ---------- CALL LIST ---------- */
-.call-list, .contact-list, .favorite-list {
     display: flex;
     flex-direction: column;
     gap: 8px;
 }
 
-.call-item, .contact-item {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 14px 18px;
+.message {
+    max-width: 70%;
+    padding: 10px 14px;
+    border-radius: 12px;
+    font-size: 14px;
+}
+
+.message.received {
     background: var(--bg-card);
-    border-radius: var(--radius);
-    border: 1px solid var(--border-color);
-    transition: var(--transition);
-    cursor: pointer;
+    align-self: flex-start;
+    border-bottom-left-radius: 4px;
 }
 
-.call-item:hover, .contact-item:hover {
-    background: rgba(255,255,255,0.08);
-    transform: translateX(5px);
+.message.sent {
+    background: rgba(247,151,30,0.15);
+    align-self: flex-end;
+    border-bottom-right-radius: 4px;
 }
 
-.call-info, .contact-info {
-    display: flex;
-    align-items: center;
-    gap: 15px;
-}
-
-.call-info img, .contact-info img {
-    width: 44px;
-    height: 44px;
-    border-radius: 50%;
-    object-fit: cover;
-}
-
-.call-details h4, .contact-details h4 {
-    font-size: 15px;
-    font-weight: 600;
-}
-
-.call-details span, .contact-details span {
-    font-size: 12px;
+.message small {
+    display: block;
+    font-size: 10px;
     color: var(--text-secondary);
+    margin-top: 4px;
 }
 
-.call-actions {
+.chat-input {
     display: flex;
     gap: 8px;
+    padding: 12px 20px;
+    background: var(--bg-secondary);
+    border-top: 1px solid var(--border-color);
 }
 
-.call-actions button {
-    width: 36px;
-    height: 36px;
+.chat-input input {
+    flex: 1;
+    padding: 10px 16px;
+    border: 1px solid var(--border-color);
+    border-radius: 20px;
+    background: var(--bg-card);
+    color: var(--text-primary);
+    outline: none;
+}
+
+.emoji-btn {
+    width: 40px;
+    height: 40px;
     border: none;
     border-radius: 50%;
+    background: var(--bg-card);
+    color: var(--text-secondary);
+    cursor: pointer;
+}
+
+.send-btn {
+    width: 40px;
+    height: 40px;
+    border: none;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--primary), var(--secondary));
+    color: #0a0e1a;
     cursor: pointer;
     transition: var(--transition);
-    display: flex;
-    align-items: center;
-    justify-content: center;
 }
 
-.call-actions .call-btn-action {
-    background: rgba(46,213,115,0.15);
-    color: var(--success);
+.send-btn:hover {
+    transform: scale(1.05);
 }
 
-.call-actions .call-btn-action:hover {
-    background: rgba(46,213,115,0.25);
-}
-
-.call-actions .video-btn {
-    background: rgba(52,152,219,0.15);
-    color: #3498db;
-}
-
-.call-actions .video-btn:hover {
-    background: rgba(52,152,219,0.25);
-}
-
-.call-actions .delete-btn {
-    background: rgba(231,76,60,0.1);
-    color: var(--danger);
-}
-
-.call-actions .delete-btn:hover {
-    background: rgba(231,76,60,0.2);
-}
-
-.call-time {
-    font-size: 11px;
+/* ---------- EMPTY STATE ---------- */
+.empty-state {
+    text-align: center;
+    padding: 60px 20px;
     color: var(--text-secondary);
-    margin-left: 10px;
+}
+
+.empty-state i {
+    font-size: 48px;
+    margin-bottom: 15px;
+    display: block;
+}
+
+.empty-state h3 {
+    font-size: 18px;
+    margin-bottom: 5px;
 }
 
 /* ---------- CALL INTERFACE ---------- */
@@ -411,11 +615,10 @@ body {
     width: 100%;
     height: 100%;
     background: rgba(0,0,0,0.95);
-    z-index: 1000;
+    z-index: 2000;
     display: flex;
     align-items: center;
     justify-content: center;
-    animation: fadeIn 0.3s ease;
 }
 
 .call-container {
@@ -426,7 +629,6 @@ body {
     display: flex;
     flex-direction: column;
     padding: 20px;
-    position: relative;
 }
 
 .call-header {
@@ -448,11 +650,6 @@ body {
     background: rgba(231,76,60,0.1);
     color: var(--danger);
     cursor: pointer;
-    transition: var(--transition);
-}
-
-.close-call:hover {
-    background: rgba(231,76,60,0.2);
 }
 
 .call-user {
@@ -462,16 +659,14 @@ body {
 }
 
 .call-user img {
-    width: 60px;
-    height: 60px;
+    width: 50px;
+    height: 50px;
     border-radius: 50%;
     object-fit: cover;
-    margin-bottom: 5px;
 }
 
 .call-user h3 {
-    font-size: 20px;
-    font-weight: 600;
+    font-size: 18px;
 }
 
 .call-user span {
@@ -479,7 +674,6 @@ body {
     color: var(--text-secondary);
 }
 
-/* ---------- CALL VIDEO ---------- */
 .call-video {
     flex: 1;
     background: rgba(255,255,255,0.02);
@@ -487,43 +681,41 @@ body {
     border: 1px solid var(--border-color);
     position: relative;
     overflow: hidden;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    min-height: 400px;
+    min-height: 300px;
 }
 
 .remote-video {
     width: 100%;
     height: 100%;
     object-fit: cover;
-    background: #0a0e1a;
 }
 
 .local-video {
     position: absolute;
-    bottom: 20px;
-    right: 20px;
-    width: 160px;
-    height: 120px;
+    bottom: 15px;
+    right: 15px;
+    width: 140px;
+    height: 100px;
     border-radius: 12px;
     object-fit: cover;
     border: 2px solid var(--border-color);
-    background: #0a0e1a;
 }
 
 .call-placeholder {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
     text-align: center;
     color: var(--text-secondary);
 }
 
 .call-placeholder i {
-    font-size: 80px;
+    font-size: 60px;
     margin-bottom: 15px;
-    color: var(--primary);
+    display: block;
 }
 
-/* ---------- CALL CONTROLS ---------- */
 .call-controls {
     display: flex;
     justify-content: center;
@@ -573,109 +765,16 @@ body {
     background: rgba(231,76,60,0.3);
 }
 
-.call-btn.active {
-    background: rgba(46,213,115,0.15);
-    color: var(--success);
-}
-
-/* ---------- CALL CHAT ---------- */
-.call-chat {
-    position: absolute;
-    right: 20px;
-    top: 50%;
-    transform: translateY(-50%);
-    width: 300px;
-    height: 400px;
-    background: var(--bg-secondary);
-    border-radius: var(--radius);
-    border: 1px solid var(--border-color);
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
-}
-
-.chat-messages {
-    flex: 1;
-    padding: 15px;
-    overflow-y: auto;
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-}
-
-.message {
-    max-width: 80%;
-    padding: 10px 14px;
-    border-radius: 12px;
-    font-size: 13px;
-}
-
-.message.received {
-    background: var(--bg-card);
-    align-self: flex-start;
-    border-bottom-left-radius: 4px;
-}
-
-.message.sent {
-    background: rgba(247,151,30,0.15);
-    align-self: flex-end;
-    border-bottom-right-radius: 4px;
-}
-
-.message small {
-    display: block;
-    font-size: 10px;
-    color: var(--text-secondary);
-    margin-top: 4px;
-}
-
-.chat-input {
-    display: flex;
-    gap: 8px;
-    padding: 10px;
-    border-top: 1px solid var(--border-color);
-}
-
-.chat-input input {
-    flex: 1;
-    padding: 8px 14px;
-    border: 1px solid var(--border-color);
-    border-radius: 20px;
-    background: var(--bg-card);
-    color: var(--text-primary);
-    outline: none;
-}
-
-.chat-input button {
-    width: 40px;
-    height: 40px;
-    border: none;
-    border-radius: 50%;
-    background: linear-gradient(135deg, var(--primary), var(--secondary));
-    color: #0a0e1a;
-    cursor: pointer;
-    transition: var(--transition);
-}
-
-.chat-input button:hover {
-    transform: scale(1.05);
-}
-
-/* ---------- NOTIFICATION ---------- */
-.notification {
-    display: none;
+/* ---------- INCOMING CALL ---------- */
+.incoming-call {
     position: fixed;
     bottom: 30px;
     right: 30px;
-    z-index: 2000;
+    z-index: 1500;
     animation: slideUp 0.5s ease;
 }
 
-.notification.show {
-    display: block;
-}
-
-.notification-content {
+.incoming-call-content {
     display: flex;
     align-items: center;
     gap: 15px;
@@ -683,243 +782,67 @@ body {
     border: 1px solid var(--border-color);
     border-radius: var(--radius);
     padding: 15px 20px;
-    box-shadow: var(--shadow);
-    min-width: 300px;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+    min-width: 280px;
 }
 
-.notification-icon {
+.caller-info {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.caller-info img {
     width: 48px;
     height: 48px;
     border-radius: 50%;
-    background: rgba(46,213,115,0.15);
-    color: var(--success);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 20px;
+    object-fit: cover;
 }
 
-.notification-text h4 {
+.caller-info h3 {
     font-size: 14px;
-    font-weight: 600;
+    margin-top: 4px;
 }
 
-.notification-text p {
+.caller-info span {
     font-size: 12px;
-    color: var(--text-secondary);
+    color: var(--warning);
 }
 
-.notification-actions {
+.call-actions {
     display: flex;
-    gap: 6px;
+    gap: 8px;
 }
 
-.notification-actions button {
-    width: 36px;
-    height: 36px;
+.call-actions button {
+    width: 44px;
+    height: 44px;
     border: none;
     border-radius: 50%;
     cursor: pointer;
     transition: var(--transition);
+    font-size: 18px;
 }
 
-.notification-actions .accept {
+.call-actions .accept {
     background: rgba(46,213,115,0.15);
     color: var(--success);
 }
 
-.notification-actions .accept:hover {
+.call-actions .accept:hover {
     background: rgba(46,213,115,0.25);
 }
 
-.notification-actions .reject {
+.call-actions .reject {
     background: rgba(231,76,60,0.1);
     color: var(--danger);
 }
 
-.notification-actions .reject:hover {
+.call-actions .reject:hover {
     background: rgba(231,76,60,0.2);
 }
 
-/* ---------- MODAL ---------- */
-.modal {
-    display: none;
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0,0,0,0.7);
-    backdrop-filter: blur(10px);
-    z-index: 3000;
-    justify-content: center;
-    align-items: center;
-}
-
-.modal.show {
-    display: flex;
-}
-
-.modal-content {
-    background: var(--bg-secondary);
-    border-radius: 24px;
-    padding: 30px;
-    max-width: 500px;
-    width: 90%;
-    border: 1px solid var(--border-color);
-    animation: scaleUp 0.3s ease;
-}
-
-.modal-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 20px;
-}
-
-.modal-header h3 {
-    font-size: 20px;
-    font-weight: 600;
-}
-
-.close-modal {
-    width: 36px;
-    height: 36px;
-    border: none;
-    border-radius: 50%;
-    background: rgba(255,255,255,0.05);
-    color: var(--text-secondary);
-    cursor: pointer;
-    transition: var(--transition);
-}
-
-.close-modal:hover {
-    background: rgba(255,255,255,0.1);
-}
-
-.modal-body {
-    display: flex;
-    flex-direction: column;
-    gap: 15px;
-}
-
-.modal-body .form-group {
-    display: flex;
-    flex-direction: column;
-    gap: 5px;
-}
-
-.modal-body .form-group label {
-    font-size: 13px;
-    font-weight: 500;
-    color: var(--text-secondary);
-}
-
-.modal-body .form-group input {
-    padding: 10px 14px;
-    border: 1px solid var(--border-color);
-    border-radius: 10px;
-    background: var(--bg-card);
-    color: var(--text-primary);
-    font-size: 14px;
-    outline: none;
-    transition: var(--transition);
-}
-
-.modal-body .form-group input:focus {
-    border-color: var(--primary);
-}
-
-/* ---------- SETTINGS ---------- */
-.settings-panel {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-}
-
-.setting-item {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 16px 20px;
-    background: var(--bg-card);
-    border-radius: var(--radius);
-    border: 1px solid var(--border-color);
-}
-
-.setting-info {
-    display: flex;
-    align-items: center;
-    gap: 15px;
-}
-
-.setting-info i {
-    font-size: 20px;
-    color: var(--primary);
-    width: 30px;
-}
-
-.setting-info h4 {
-    font-size: 14px;
-    font-weight: 600;
-}
-
-.setting-info span {
-    font-size: 12px;
-    color: var(--text-secondary);
-}
-
-/* ---------- SWITCH ---------- */
-.switch {
-    position: relative;
-    width: 48px;
-    height: 26px;
-    cursor: pointer;
-}
-
-.switch input {
-    opacity: 0;
-    width: 0;
-    height: 0;
-}
-
-.slider {
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: rgba(255,255,255,0.1);
-    border-radius: 26px;
-    transition: var(--transition);
-}
-
-.slider:before {
-    content: '';
-    position: absolute;
-    height: 20px;
-    width: 20px;
-    left: 3px;
-    bottom: 3px;
-    background: #fff;
-    border-radius: 50%;
-    transition: var(--transition);
-}
-
-.switch input:checked + .slider {
-    background: linear-gradient(135deg, var(--primary), var(--secondary));
-}
-
-.switch input:checked + .slider:before {
-    transform: translateX(22px);
-}
-
 /* ---------- ANIMATIONS ---------- */
-@keyframes fadeIn {
-    from { opacity: 0; }
-    to { opacity: 1; }
-}
-
 @keyframes slideUp {
     from { opacity: 0; transform: translateY(20px); }
     to { opacity: 1; transform: translateY(0); }
@@ -935,7 +858,6 @@ body {
     .app-container {
         grid-template-columns: 1fr;
     }
-    
     .sidebar {
         display: none;
         position: fixed;
@@ -946,85 +868,40 @@ body {
         z-index: 500;
         animation: slideIn 0.3s ease;
     }
-    
     .sidebar.show {
         display: flex;
-    }
-    
-    @keyframes slideIn {
-        from { transform: translateX(-100%); }
-        to { transform: translateX(0); }
     }
 }
 
 @media (max-width: 768px) {
-    .main-header {
-        padding: 12px 16px;
+    .chat-item, .call-item, .contact-item {
+        padding: 10px 12px;
     }
-    
-    .content-section {
-        padding: 15px;
-    }
-    
-    .call-video {
-        min-height: 250px;
-    }
-    
-    .local-video {
-        width: 100px;
-        height: 80px;
-        bottom: 10px;
+    .incoming-call {
         right: 10px;
+        left: 10px;
+        bottom: 10px;
     }
-    
+    .incoming-call-content {
+        min-width: auto;
+    }
     .call-controls {
         gap: 8px;
     }
-    
     .call-btn {
         padding: 8px 12px;
         min-width: 50px;
     }
-    
     .call-btn i {
         font-size: 16px;
     }
-    
-    .call-chat {
-        width: 100%;
-        height: 300px;
-        right: 0;
-        bottom: 80px;
-        top: auto;
-        transform: none;
-    }
-    
-    .notification-content {
-        min-width: 250px;
-        padding: 12px 16px;
+    .local-video {
+        width: 100px;
+        height: 75px;
     }
 }
 
-@media (max-width: 480px) {
-    .call-user img {
-        width: 40px;
-        height: 40px;
-    }
-    
-    .call-user h3 {
-        font-size: 16px;
-    }
-    
-    .call-item, .contact-item {
-        padding: 10px 12px;
-    }
-    
-    .call-info img, .contact-info img {
-        width: 36px;
-        height: 36px;
-    }
-    
-    .modal-content {
-        padding: 20px;
-    }
+@keyframes slideIn {
+    from { transform: translateX(-100%); }
+    to { transform: translateX(0); }
 }

@@ -3,61 +3,302 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🎲 Ludo Kingdom - Login</title>
+    <title>📞 Pro Call - Video & Voice Calling</title>
     <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
-    <div class="auth-wrapper">
-        <div class="auth-card">
-            <div class="auth-header">
-                <div class="logo">🎲</div>
-                <h1>Ludo Kingdom</h1>
-                <p>Welcome to the ultimate Ludo experience</p>
+    <div class="app-container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <div class="logo">
+                    <i class="fas fa-phone-alt"></i>
+                    <span>ProCall</span>
+                </div>
+                <div class="user-profile">
+                    <img src="https://ui-avatars.com/api/?name=John+Doe&background=f7971e&color=fff&size=40" alt="Profile">
+                    <div class="user-info">
+                        <h4>John Doe</h4>
+                        <span>Online</span>
+                    </div>
+                </div>
             </div>
             
-            <div class="auth-tabs">
-                <button class="tab-btn active" data-tab="login">Sign In</button>
-                <button class="tab-btn" data-tab="signup">Create Account</button>
-            </div>
-
-            <!-- Login Form -->
-            <form id="loginForm" class="auth-form active">
-                <div class="form-group">
-                    <label>Username</label>
-                    <input type="text" id="loginUsername" placeholder="Enter your username" required>
-                </div>
-                <div class="form-group">
-                    <label>Password</label>
-                    <input type="password" id="loginPassword" placeholder="Enter your password" required>
-                </div>
-                <button type="submit" class="btn-primary">Sign In</button>
-                <div id="loginMessage" class="message"></div>
-            </form>
-
-            <!-- Signup Form -->
-            <form id="signupForm" class="auth-form">
-                <div class="form-group">
-                    <label>Username</label>
-                    <input type="text" id="signupUsername" placeholder="Choose a username" required>
-                </div>
-                <div class="form-group">
-                    <label>Password</label>
-                    <input type="password" id="signupPassword" placeholder="Create a password" required>
-                </div>
-                <div class="form-group">
-                    <label>W_ID (Unique Identifier)</label>
-                    <input type="text" id="signupWid" placeholder="Enter your W_ID" required>
-                </div>
-                <button type="submit" class="btn-primary">Create Account</button>
-                <div id="signupMessage" class="message"></div>
-            </form>
+            <nav class="sidebar-nav">
+                <a href="#" class="active" data-tab="calls">
+                    <i class="fas fa-phone"></i>
+                    <span>Calls</span>
+                </a>
+                <a href="#" data-tab="contacts">
+                    <i class="fas fa-address-book"></i>
+                    <span>Contacts</span>
+                </a>
+                <a href="#" data-tab="favorites">
+                    <i class="fas fa-star"></i>
+                    <span>Favorites</span>
+                </a>
+                <a href="#" data-tab="settings">
+                    <i class="fas fa-cog"></i>
+                    <span>Settings</span>
+                </a>
+            </nav>
             
-            <!-- Admin Link -->
-            <div class="admin-link">
-                <a href="admin.html">🔐 Admin Login</a>
+            <div class="sidebar-footer">
+                <button class="btn-logout" onclick="logout()">
+                    <i class="fas fa-sign-out-alt"></i>
+                    Logout
+                </button>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Header -->
+            <header class="main-header">
+                <div class="header-search">
+                    <i class="fas fa-search"></i>
+                    <input type="text" placeholder="Search contacts or calls..." id="searchInput" oninput="searchContacts()">
+                </div>
+                <div class="header-actions">
+                    <button class="icon-btn" onclick="showNotification()">
+                        <i class="fas fa-bell"></i>
+                        <span class="badge">3</span>
+                    </button>
+                    <button class="icon-btn" onclick="toggleTheme()">
+                        <i class="fas fa-moon"></i>
+                    </button>
+                    <button class="icon-btn" onclick="showSettings()">
+                        <i class="fas fa-ellipsis-v"></i>
+                    </button>
+                </div>
+            </header>
+
+            <!-- Call Section -->
+            <section id="callsSection" class="content-section active">
+                <div class="section-header">
+                    <h2>Recent Calls</h2>
+                    <button class="btn-primary" onclick="startNewCall()">
+                        <i class="fas fa-plus"></i> New Call
+                    </button>
+                </div>
+                
+                <div class="call-list" id="callList">
+                    <!-- Calls will be rendered here -->
+                </div>
+            </section>
+
+            <!-- Contacts Section -->
+            <section id="contactsSection" class="content-section">
+                <div class="section-header">
+                    <h2>Contacts</h2>
+                    <button class="btn-primary" onclick="addContact()">
+                        <i class="fas fa-user-plus"></i> Add Contact
+                    </button>
+                </div>
+                
+                <div class="contact-list" id="contactList">
+                    <!-- Contacts will be rendered here -->
+                </div>
+            </section>
+
+            <!-- Favorites Section -->
+            <section id="favoritesSection" class="content-section">
+                <div class="section-header">
+                    <h2>⭐ Favorites</h2>
+                </div>
+                <div class="favorite-list" id="favoriteList">
+                    <!-- Favorites will be rendered here -->
+                </div>
+            </section>
+
+            <!-- Settings Section -->
+            <section id="settingsSection" class="content-section">
+                <div class="section-header">
+                    <h2>⚙️ Settings</h2>
+                </div>
+                <div class="settings-panel">
+                    <div class="setting-item">
+                        <div class="setting-info">
+                            <i class="fas fa-video"></i>
+                            <div>
+                                <h4>Video Calls</h4>
+                                <span>Enable video calling</span>
+                            </div>
+                        </div>
+                        <label class="switch">
+                            <input type="checkbox" checked>
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                    
+                    <div class="setting-item">
+                        <div class="setting-info">
+                            <i class="fas fa-microphone"></i>
+                            <div>
+                                <h4>Microphone</h4>
+                                <span>Allow microphone access</span>
+                            </div>
+                        </div>
+                        <label class="switch">
+                            <input type="checkbox" checked>
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                    
+                    <div class="setting-item">
+                        <div class="setting-info">
+                            <i class="fas fa-volume-up"></i>
+                            <div>
+                                <h4>Speaker</h4>
+                                <span>Enable speaker</span>
+                            </div>
+                        </div>
+                        <label class="switch">
+                            <input type="checkbox" checked>
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                    
+                    <div class="setting-item">
+                        <div class="setting-info">
+                            <i class="fas fa-moon"></i>
+                            <div>
+                                <h4>Dark Mode</h4>
+                                <span>Switch to dark theme</span>
+                            </div>
+                        </div>
+                        <label class="switch">
+                            <input type="checkbox" id="darkModeToggle" onchange="toggleTheme()">
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                    
+                    <div class="setting-item">
+                        <div class="setting-info">
+                            <i class="fas fa-bell"></i>
+                            <div>
+                                <h4>Notifications</h4>
+                                <span>Enable call notifications</span>
+                            </div>
+                        </div>
+                        <label class="switch">
+                            <input type="checkbox" checked>
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <!-- Call Interface (Hidden by default) -->
+        <div class="call-interface" id="callInterface" style="display:none;">
+            <div class="call-container">
+                <div class="call-header">
+                    <button class="close-call" onclick="endCall()">
+                        <i class="fas fa-times"></i>
+                    </button>
+                    <div class="call-user">
+                        <img src="" alt="Caller" id="callerAvatar">
+                        <h3 id="callerName">Calling...</h3>
+                        <span id="callStatus">Connecting...</span>
+                    </div>
+                </div>
+                
+                <div class="call-video">
+                    <video id="remoteVideo" class="remote-video" autoplay playsinline></video>
+                    <video id="localVideo" class="local-video" autoplay playsinline muted></video>
+                    <div class="call-placeholder" id="callPlaceholder">
+                        <i class="fas fa-user-circle"></i>
+                        <h3>Waiting for connection...</h3>
+                    </div>
+                </div>
+                
+                <div class="call-controls">
+                    <button class="call-btn" onclick="toggleMute()">
+                        <i class="fas fa-microphone"></i>
+                        <span>Mute</span>
+                    </button>
+                    <button class="call-btn" onclick="toggleVideo()">
+                        <i class="fas fa-video"></i>
+                        <span>Video</span>
+                    </button>
+                    <button class="call-btn" onclick="toggleSpeaker()">
+                        <i class="fas fa-volume-up"></i>
+                        <span>Speaker</span>
+                    </button>
+                    <button class="call-btn end-call" onclick="endCall()">
+                        <i class="fas fa-phone-slash"></i>
+                        <span>End</span>
+                    </button>
+                    <button class="call-btn" onclick="toggleChat()">
+                        <i class="fas fa-comment"></i>
+                        <span>Chat</span>
+                    </button>
+                    <button class="call-btn" onclick="showMoreOptions()">
+                        <i class="fas fa-ellipsis-v"></i>
+                        <span>More</span>
+                    </button>
+                </div>
+                
+                <div class="call-chat" id="callChat" style="display:none;">
+                    <div class="chat-messages" id="chatMessages">
+                        <div class="message received">
+                            <span>Hello! How are you?</span>
+                            <small>10:30 AM</small>
+                        </div>
+                        <div class="message sent">
+                            <span>I'm good! Thanks for calling.</span>
+                            <small>10:31 AM</small>
+                        </div>
+                    </div>
+                    <div class="chat-input">
+                        <input type="text" placeholder="Type a message..." id="chatInput">
+                        <button onclick="sendMessage()">
+                            <i class="fas fa-paper-plane"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Notification -->
+        <div class="notification" id="notification">
+            <div class="notification-content">
+                <div class="notification-icon">
+                    <i class="fas fa-phone"></i>
+                </div>
+                <div class="notification-text">
+                    <h4>Incoming Call</h4>
+                    <p>Sarah Johnson is calling...</p>
+                </div>
+                <div class="notification-actions">
+                    <button class="accept" onclick="acceptCall()">
+                        <i class="fas fa-phone"></i>
+                    </button>
+                    <button class="reject" onclick="rejectCall()">
+                        <i class="fas fa-phone-slash"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modal -->
+        <div class="modal" id="modal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3 id="modalTitle">Add Contact</h3>
+                    <button class="close-modal" onclick="closeModal()">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                <div class="modal-body" id="modalBody">
+                    <!-- Modal content will be rendered here -->
+                </div>
             </div>
         </div>
     </div>
+
     <script src="script.js"></script>
 </body>
 </html>

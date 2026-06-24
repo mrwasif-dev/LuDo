@@ -2,7 +2,6 @@ const express = require('express');
 const http = require('http');
 const socketIo = require('socket.io');
 const path = require('path');
-const cors = require('cors');
 
 const app = express();
 const server = http.createServer(app);
@@ -14,7 +13,6 @@ const io = socketIo(server, {
 });
 
 // Middleware
-app.use(cors());
 app.use(express.static(path.join(__dirname, '/')));
 app.use(express.json());
 
@@ -31,7 +29,6 @@ io.on('connection', (socket) => {
     socket.on('user_login', (data) => {
         const { username, avatar } = data;
         
-        // Store user
         users[username] = {
             id: socket.id,
             username: username,
@@ -42,16 +39,12 @@ io.on('connection', (socket) => {
         
         socket.username = username;
         
-        // Broadcast online status
         io.emit('user_online', {
             username: username,
             users: Object.values(users)
         });
         
-        // Send current users to new user
         socket.emit('current_users', Object.values(users));
-        
-        // Send message history
         socket.emit('message_history', messages);
         
         console.log(`✅ ${username} logged in`);
@@ -72,18 +65,15 @@ io.on('connection', (socket) => {
             read: false
         };
         
-        // Store message
         if (!messages[from]) messages[from] = [];
         if (!messages[to]) messages[to] = [];
         messages[from].push(msgData);
         messages[to].push(msgData);
         
-        // Send to recipient if online
         if (users[to] && users[to].online) {
             io.to(users[to].id).emit('new_message', msgData);
         }
         
-        // Send back to sender
         socket.emit('message_sent', msgData);
     });
 
@@ -93,7 +83,6 @@ io.on('connection', (socket) => {
         const from = socket.username;
         
         if (users[to] && users[to].online) {
-            // Send call request to recipient
             io.to(users[to].id).emit('incoming_call', {
                 from: from,
                 fromAvatar: users[from].avatar,
@@ -101,27 +90,10 @@ io.on('connection', (socket) => {
                 timestamp: new Date().toISOString()
             });
             
-            // Send waiting status to caller
             socket.emit('call_waiting', {
                 to: to,
                 status: 'waiting'
             });
-            
-            // Store call history
-            if (!callHistory[from]) callHistory[from] = [];
-            if (!callHistory[to]) callHistory[to] = [];
-            
-            const callData = {
-                id: Date.now().toString(),
-                from: from,
-                to: to,
-                type: type,
-                status: 'ringing',
-                timestamp: new Date().toISOString()
-            };
-            
-            callHistory[from].push(callData);
-            callHistory[to].push(callData);
         } else {
             socket.emit('call_error', {
                 message: 'User is offline',
@@ -147,25 +119,18 @@ io.on('connection', (socket) => {
                 to: to,
                 status: 'connected'
             });
-            
-            // Update call history
-            updateCallStatus(from, to, 'connected');
         }
     });
 
     // Reject call
     socket.on('reject_call', (data) => {
         const { from } = data;
-        const to = socket.username;
-        
         if (users[from] && users[from].online) {
             io.to(users[from].id).emit('call_rejected', {
-                from: to,
+                from: socket.username,
                 to: from,
                 status: 'rejected'
             });
-            
-            updateCallStatus(from, to, 'rejected');
         }
     });
 
@@ -181,18 +146,14 @@ io.on('connection', (socket) => {
                 status: 'ended'
             });
         }
-        
-        updateCallStatus(from, to, 'ended');
     });
 
     // WebRTC signaling
     socket.on('webrtc_offer', (data) => {
         const { to, offer } = data;
-        const from = socket.username;
-        
         if (users[to] && users[to].online) {
             io.to(users[to].id).emit('webrtc_offer', {
-                from: from,
+                from: socket.username,
                 offer: offer
             });
         }
@@ -200,11 +161,9 @@ io.on('connection', (socket) => {
 
     socket.on('webrtc_answer', (data) => {
         const { to, answer } = data;
-        const from = socket.username;
-        
         if (users[to] && users[to].online) {
             io.to(users[to].id).emit('webrtc_answer', {
-                from: from,
+                from: socket.username,
                 answer: answer
             });
         }
@@ -212,11 +171,9 @@ io.on('connection', (socket) => {
 
     socket.on('webrtc_ice', (data) => {
         const { to, candidate } = data;
-        const from = socket.username;
-        
         if (users[to] && users[to].online) {
             io.to(users[to].id).emit('webrtc_ice', {
-                from: from,
+                from: socket.username,
                 candidate: candidate
             });
         }
@@ -225,26 +182,10 @@ io.on('connection', (socket) => {
     // Typing indicator
     socket.on('typing', (data) => {
         const { to, isTyping } = data;
-        const from = socket.username;
-        
         if (users[to] && users[to].online) {
             io.to(users[to].id).emit('user_typing', {
-                from: from,
+                from: socket.username,
                 isTyping: isTyping
-            });
-        }
-    });
-
-    // Mark messages as read
-    socket.on('mark_read', (data) => {
-        const { from } = data;
-        const to = socket.username;
-        
-        if (messages[from]) {
-            messages[from].forEach(msg => {
-                if (msg.to === to && !msg.read) {
-                    msg.read = true;
-                }
             });
         }
     });
@@ -266,22 +207,6 @@ io.on('connection', (socket) => {
     });
 });
 
-// ---------- HELPER FUNCTIONS ----------
-function updateCallStatus(from, to, status) {
-    if (callHistory[from]) {
-        const lastCall = callHistory[from][callHistory[from].length - 1];
-        if (lastCall && lastCall.to === to) {
-            lastCall.status = status;
-        }
-    }
-    if (callHistory[to]) {
-        const lastCall = callHistory[to][callHistory[to].length - 1];
-        if (lastCall && lastCall.from === from) {
-            lastCall.status = status;
-        }
-    }
-}
-
 // ---------- ROUTES ----------
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'index.html'));
@@ -291,13 +216,8 @@ app.get('/dashboard', (req, res) => {
     res.sendFile(path.join(__dirname, 'dashboard.html'));
 });
 
-app.get('/api/users', (req, res) => {
-    res.json(Object.values(users));
-});
-
-app.get('/api/messages/:user', (req, res) => {
-    const { user } = req.params;
-    res.json(messages[user] || []);
+app.get('/health', (req, res) => {
+    res.status(200).json({ status: 'OK', message: 'App is running!' });
 });
 
 // ---------- START SERVER ----------
@@ -305,5 +225,4 @@ const PORT = process.env.PORT || 3000;
 server.listen(PORT, () => {
     console.log(`🚀 Server running on port ${PORT}`);
     console.log(`📍 http://localhost:${PORT}`);
-    console.log(`📞 Call & Messaging App Ready!`);
 });

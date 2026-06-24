@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🎲 Ludo Kingdom - Game</title>
+    <title>🎲 Ludo Kingdom - Original Game</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -29,17 +29,17 @@
 
         <!-- Game Modes -->
         <section class="game-modes">
-            <button class="mode-btn active" data-mode="online" onclick="selectMode('online')">
-                <span>🌐</span> Online
+            <button class="mode-btn active" data-mode="2player" onclick="selectMode('2player')">
+                <span>👥</span> 2 Players
+            </button>
+            <button class="mode-btn" data-mode="4player" onclick="selectMode('4player')">
+                <span>👥👥</span> 4 Players
             </button>
             <button class="mode-btn" data-mode="computer" onclick="selectMode('computer')">
-                <span>💻</span> Computer
+                <span>💻</span> vs Computer
             </button>
-            <button class="mode-btn" data-mode="local" onclick="selectMode('local')">
-                <span>🏠</span> Local
-            </button>
-            <button class="mode-btn" data-mode="private" onclick="selectMode('private')">
-                <span>🔒</span> Private
+            <button class="mode-btn" data-mode="online" onclick="selectMode('online')">
+                <span>🌐</span> Online
             </button>
         </section>
 
@@ -47,7 +47,7 @@
         <div class="game-area">
             <div class="game-board-wrapper">
                 <div class="ludo-board" id="ludoBoard">
-                    <!-- Board will be rendered by JavaScript -->
+                    <!-- Board rendered by JavaScript -->
                 </div>
             </div>
             
@@ -67,7 +67,7 @@
                 <div class="game-info">
                     <div class="status-card">
                         <h4>📊 Game Status</h4>
-                        <p id="gameStatus">Select a mode and start playing!</p>
+                        <p id="gameStatus">Select mode and start playing!</p>
                     </div>
                     
                     <div class="players-list">
@@ -75,7 +75,7 @@
                         <div id="playerItems"></div>
                     </div>
                     
-                    <div class="game-history" id="gameHistory">
+                    <div class="game-history">
                         <h4>📜 Game Log</h4>
                         <div id="historyLog"></div>
                     </div>

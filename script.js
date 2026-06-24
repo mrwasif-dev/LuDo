@@ -1,44 +1,252 @@
 // ============================================
-// 📞 PRO CALL - Complete Calling Application
+// 📞 COMPLETE CALL & MESSAGING APP
+// Frontend Logic
 // ============================================
 
-// ---------- DATA ----------
-const App = {
-    user: {
-        name: 'John Doe',
-        email: 'john@example.com',
-        avatar: 'https://ui-avatars.com/api/?name=John+Doe&background=f7971e&color=fff&size=100'
-    },
-    contacts: [
-        { id: 1, name: 'Sarah Johnson', phone: '+1 234 567 890', avatar: 'https://ui-avatars.com/api/?name=Sarah+Johnson&background=3498db&color=fff', favorite: true, status: 'online' },
-        { id: 2, name: 'Michael Chen', phone: '+1 234 567 891', avatar: 'https://ui-avatars.com/api/?name=Michael+Chen&background=2ecc71&color=fff', favorite: false, status: 'offline' },
-        { id: 3, name: 'Emma Wilson', phone: '+1 234 567 892', avatar: 'https://ui-avatars.com/api/?name=Emma+Wilson&background=e74c3c&color=fff', favorite: true, status: 'online' },
-        { id: 4, name: 'David Brown', phone: '+1 234 567 893', avatar: 'https://ui-avatars.com/api/?name=David+Brown&background=9b59b6&color=fff', favorite: false, status: 'away' },
-        { id: 5, name: 'Lisa Anderson', phone: '+1 234 567 894', avatar: 'https://ui-avatars.com/api/?name=Lisa+Anderson&background=f1c40f&color=000', favorite: true, status: 'online' }
-    ],
-    calls: [
-        { id: 1, name: 'Sarah Johnson', time: '10:30 AM', type: 'video', missed: false, duration: '5:23' },
-        { id: 2, name: 'Michael Chen', time: 'Yesterday', type: 'voice', missed: true, duration: '-' },
-        { id: 3, name: 'Emma Wilson', time: 'Yesterday', type: 'video', missed: false, duration: '12:45' },
-        { id: 4, name: 'David Brown', time: '2 days ago', type: 'voice', missed: false, duration: '3:12' },
-        { id: 5, name: 'Lisa Anderson', time: '3 days ago', type: 'video', missed: false, duration: '8:30' }
-    ],
-    isCalling: false,
-    isMuted: false,
-    isVideoOn: true,
-    isSpeakerOn: false,
-    currentCall: null,
-    darkMode: false
-};
+// ---------- GLOBALS ----------
+let socket = null;
+let currentUser = null;
+let currentChat = null;
+let isCalling = false;
+let isMuted = false;
+let isVideoOn = true;
+let isSpeakerOn = false;
+let peerConnection = null;
+let localStream = null;
+let remoteStream = null;
+let pendingCall = null;
 
-// ---------- INIT ----------
-document.addEventListener('DOMContentLoaded', function() {
-    renderCalls();
-    renderContacts();
-    renderFavorites();
+// ---------- DOM REFS ----------
+const $ = (id) => document.getElementById(id);
+
+// ---------- LOGIN ----------
+function login(event) {
+    event.preventDefault();
+    const username = $('username').value.trim();
+    const password = $('password').value.trim();
+    
+    if (!username || !password) {
+        showError('Please enter username and password');
+        return;
+    }
+    
+    // Store user data
+    currentUser = {
+        username: username,
+        avatar: `https://ui-avatars.com/api/?name=${username}&background=f7971e&color=fff`
+    };
+    
+    localStorage.setItem('call_user', JSON.stringify(currentUser));
+    
+    // Connect to socket
+    connectSocket();
+}
+
+function showSignup() {
+    $('signupModal').style.display = 'flex';
+}
+
+function closeSignup() {
+    $('signupModal').style.display = 'none';
+}
+
+function signup(event) {
+    event.preventDefault();
+    const username = $('signupUsername').value.trim();
+    const password = $('signupPassword').value.trim();
+    const displayName = $('signupDisplayName').value.trim() || username;
+    
+    if (!username || !password) {
+        alert('Please fill in all fields');
+        return;
+    }
+    
+    // Save user
+    const users = JSON.parse(localStorage.getItem('call_users') || '[]');
+    if (users.find(u => u.username === username)) {
+        alert('Username already exists!');
+        return;
+    }
+    
+    users.push({ username, password, displayName });
+    localStorage.setItem('call_users', JSON.stringify(users));
+    
+    alert('Account created! Please login.');
+    closeSignup();
+    $('username').value = username;
+}
+
+function showError(message) {
+    $('errorMessage').textContent = message;
+    $('errorMessage').style.display = 'block';
+    setTimeout(() => {
+        $('errorMessage').style.display = 'none';
+    }, 3000);
+}
+
+// ---------- SOCKET CONNECTION ----------
+function connectSocket() {
+    // Connect to server
+    socket = io();
+    
+    socket.on('connect', () => {
+        console.log('🔗 Connected to server');
+        
+        // Login user
+        socket.emit('user_login', {
+            username: currentUser.username,
+            avatar: currentUser.avatar
+        });
+        
+        // Redirect to dashboard
+        window.location.href = 'dashboard.html';
+    });
+    
+    socket.on('connect_error', (error) => {
+        console.error('Connection error:', error);
+        showError('Failed to connect to server');
+    });
+}
+
+// ---------- DASHBOARD ----------
+function initDashboard() {
+    // Get user from storage
+    const userData = localStorage.getItem('call_user');
+    if (!userData) {
+        window.location.href = 'index.html';
+        return;
+    }
+    
+    currentUser = JSON.parse(userData);
+    
+    // Update profile
+    $('profileName').textContent = currentUser.username;
+    $('profileAvatar').src = currentUser.avatar;
+    $('profileStatus').textContent = 'Online';
+    $('profileStatus').style.color = '#2ecc71';
+    
+    // Connect socket if not connected
+    if (!socket) {
+        connectSocket();
+        return;
+    }
+    
+    // Setup socket events
+    setupSocketEvents();
+    
+    // Setup navigation
     setupNavigation();
-    setupSearch();
-});
+    
+    // Load data
+    loadChats();
+    loadCalls();
+    loadContacts();
+}
+
+function setupSocketEvents() {
+    // User online
+    socket.on('user_online', (data) => {
+        console.log('User online:', data);
+        updateUserStatus(data.username, true);
+        if (data.users) {
+            updateOnlineUsers(data.users);
+        }
+    });
+    
+    socket.on('user_offline', (data) => {
+        console.log('User offline:', data);
+        updateUserStatus(data.username, false);
+        if (data.users) {
+            updateOnlineUsers(data.users);
+        }
+    });
+    
+    // Current users
+    socket.on('current_users', (users) => {
+        console.log('Current users:', users);
+        updateOnlineUsers(users);
+    });
+    
+    // New message
+    socket.on('new_message', (data) => {
+        console.log('New message:', data);
+        addMessageToChat(data);
+        updateChatList(data);
+        
+        // Show notification if not in chat
+        if (!currentChat || currentChat !== data.from) {
+            showNotification(`📩 ${data.from}: ${data.message}`);
+        }
+    });
+    
+    // Message sent confirmation
+    socket.on('message_sent', (data) => {
+        console.log('Message sent:', data);
+        addMessageToChat(data);
+    });
+    
+    // Message history
+    socket.on('message_history', (history) => {
+        console.log('Message history:', history);
+        // Store history
+        if (history) {
+            // Handle history
+        }
+    });
+    
+    // Incoming call
+    socket.on('incoming_call', (data) => {
+        console.log('Incoming call:', data);
+        showIncomingCall(data);
+    });
+    
+    // Call accepted
+    socket.on('call_accepted', (data) => {
+        console.log('Call accepted:', data);
+        startCallSession(data);
+    });
+    
+    // Call rejected
+    socket.on('call_rejected', (data) => {
+        console.log('Call rejected:', data);
+        hideCallInterface();
+        showNotification('Call rejected');
+    });
+    
+    // Call ended
+    socket.on('call_ended', (data) => {
+        console.log('Call ended:', data);
+        endCallSession();
+    });
+    
+    // Call waiting
+    socket.on('call_waiting', (data) => {
+        console.log('Call waiting:', data);
+        $('callStatus').textContent = 'Ringing...';
+        $('callStatus').style.color = '#f1c40f';
+    });
+    
+    // WebRTC signals
+    socket.on('webrtc_offer', (data) => {
+        handleOffer(data);
+    });
+    
+    socket.on('webrtc_answer', (data) => {
+        handleAnswer(data);
+    });
+    
+    socket.on('webrtc_ice', (data) => {
+        handleIceCandidate(data);
+    });
+    
+    // Typing
+    socket.on('user_typing', (data) => {
+        if (currentChat === data.from) {
+            $('chatUserStatus').textContent = data.isTyping ? 'Typing...' : 'Online';
+            $('chatUserStatus').style.color = data.isTyping ? '#f1c40f' : '#2ecc71';
+        }
+    });
+}
 
 // ---------- NAVIGATION ----------
 function setupNavigation() {
@@ -46,55 +254,259 @@ function setupNavigation() {
         link.addEventListener('click', function(e) {
             e.preventDefault();
             
-            // Update active state
             document.querySelectorAll('.sidebar-nav a').forEach(l => l.classList.remove('active'));
             this.classList.add('active');
             
-            // Show corresponding section
             const tab = this.dataset.tab;
             document.querySelectorAll('.content-section').forEach(s => s.classList.remove('active'));
-            document.getElementById(tab + 'Section').classList.add('active');
+            $(tab + 'Section').classList.add('active');
+            
+            // Hide chat window
+            if (tab !== 'chats') {
+                $('chatWindow').style.display = 'none';
+            }
         });
     });
 }
 
-function setupSearch() {
-    const searchInput = document.getElementById('searchInput');
-    searchInput.addEventListener('input', function() {
-        const query = this.value.toLowerCase();
-        filterContacts(query);
-        filterCalls(query);
+// ---------- CHATS ----------
+function loadChats() {
+    // Load chat list from localStorage or server
+    const chats = JSON.parse(localStorage.getItem('call_chats') || '[]');
+    renderChats(chats);
+}
+
+function renderChats(chats) {
+    const container = $('chatList');
+    container.innerHTML = '';
+    
+    if (chats.length === 0) {
+        container.innerHTML = `
+            <div class="empty-state">
+                <i class="fas fa-comment-dots"></i>
+                <h3>No chats yet</h3>
+                <p>Start a conversation with someone</p>
+            </div>
+        `;
+        return;
+    }
+    
+    chats.forEach(chat => {
+        const div = document.createElement('div');
+        div.className = 'chat-item';
+        div.onclick = () => openChat(chat.username);
+        div.innerHTML = `
+            <img src="${chat.avatar || `https://ui-avatars.com/api/?name=${chat.username}&background=3498db&color=fff`}" alt="">
+            <div class="chat-info">
+                <h4>${chat.username}</h4>
+                <span>${chat.lastMessage || 'No messages'}</span>
+            </div>
+            <span class="chat-time">${chat.time || ''}</span>
+            ${chat.unread ? `<span class="unread-badge">${chat.unread}</span>` : ''}
+        `;
+        container.appendChild(div);
     });
 }
 
-// ---------- RENDER CALLS ----------
-function renderCalls() {
-    const container = document.getElementById('callList');
+function openChat(username) {
+    currentChat = username;
+    $('chatWindow').style.display = 'flex';
+    $('chatUserName').textContent = username;
+    $('chatUserAvatar').src = `https://ui-avatars.com/api/?name=${username}&background=3498db&color=fff`;
+    
+    // Load messages
+    loadMessages(username);
+    
+    // Mark as read
+    socket.emit('mark_read', { from: username });
+}
+
+function loadMessages(username) {
+    const container = $('chatMessages');
     container.innerHTML = '';
     
-    App.calls.forEach(call => {
+    // Get messages from localStorage or server
+    const messages = JSON.parse(localStorage.getItem(`call_messages_${username}`) || '[]');
+    
+    messages.forEach(msg => {
+        const div = document.createElement('div');
+        div.className = `message ${msg.from === currentUser.username ? 'sent' : 'received'}`;
+        div.innerHTML = `
+            <span>${msg.message}</span>
+            <small>${formatTime(msg.timestamp)}</small>
+        `;
+        container.appendChild(div);
+    });
+    
+    container.scrollTop = container.scrollHeight;
+}
+
+function sendMessage() {
+    const input = $('messageInput');
+    const message = input.value.trim();
+    
+    if (!message || !currentChat) return;
+    
+    const msgData = {
+        to: currentChat,
+        message: message,
+        type: 'text'
+    };
+    
+    socket.emit('send_message', msgData);
+    input.value = '';
+}
+
+function addMessageToChat(data) {
+    if (currentChat !== data.from && currentChat !== data.to) return;
+    
+    const container = $('chatMessages');
+    const isSent = data.from === currentUser.username;
+    
+    const div = document.createElement('div');
+    div.className = `message ${isSent ? 'sent' : 'received'}`;
+    div.innerHTML = `
+        <span>${data.message}</span>
+        <small>${formatTime(data.timestamp)}</small>
+    `;
+    container.appendChild(div);
+    container.scrollTop = container.scrollHeight;
+    
+    // Save to localStorage
+    saveMessage(data);
+}
+
+function saveMessage(data) {
+    const key = `call_messages_${data.from}`;
+    const messages = JSON.parse(localStorage.getItem(key) || '[]');
+    messages.push(data);
+    localStorage.setItem(key, JSON.stringify(messages));
+}
+
+function updateChatList(data) {
+    // Update chat list
+    const chats = JSON.parse(localStorage.getItem('call_chats') || '[]');
+    const existing = chats.find(c => c.username === data.from);
+    
+    if (existing) {
+        existing.lastMessage = data.message;
+        existing.time = formatTime(data.timestamp);
+        existing.unread = (existing.unread || 0) + 1;
+    } else {
+        chats.push({
+            username: data.from,
+            avatar: `https://ui-avatars.com/api/?name=${data.from}&background=3498db&color=fff`,
+            lastMessage: data.message,
+            time: formatTime(data.timestamp),
+            unread: 1
+        });
+    }
+    
+    localStorage.setItem('call_chats', JSON.stringify(chats));
+    renderChats(chats);
+}
+
+function startNewChat() {
+    const username = prompt('Enter username to chat with:');
+    if (username && username !== currentUser.username) {
+        openChat(username);
+    }
+}
+
+function closeChat() {
+    $('chatWindow').style.display = 'none';
+    currentChat = null;
+}
+
+// ---------- CALLS ----------
+function loadCalls() {
+    const calls = JSON.parse(localStorage.getItem('call_history') || '[]');
+    renderCalls(calls);
+}
+
+function renderCalls(calls) {
+    const container = $('callList');
+    container.innerHTML = '';
+    
+    if (calls.length === 0) {
+        container.innerHTML = `
+            <div class="empty-state">
+                <i class="fas fa-phone"></i>
+                <h3>No calls yet</h3>
+                <p>Your call history will appear here</p>
+            </div>
+        `;
+        return;
+    }
+    
+    calls.forEach(call => {
         const div = document.createElement('div');
         div.className = 'call-item';
         div.innerHTML = `
             <div class="call-info">
-                <img src="${getAvatar(call.name)}" alt="${call.name}">
-                <div class="call-details">
-                    <h4>${call.name}</h4>
+                <img src="${call.avatar || `https://ui-avatars.com/api/?name=${call.username}&background=f7971e&color=fff`}" alt="">
+                <div>
+                    <h4>${call.username}</h4>
                     <span>
-                        ${call.missed ? '<i class="fas fa-phone-slash" style="color:#e74c3c;"></i>' : '<i class="fas fa-phone" style="color:#2ecc71;"></i>'}
-                        ${call.type === 'video' ? '📹' : '📞'} ${call.time}
-                        ${call.duration !== '-' ? `• ${call.duration}` : ''}
+                        ${call.type === 'video' ? '📹' : '📞'} 
+                        ${call.status === 'connected' ? '✅' : call.status === 'missed' ? '❌' : ''}
+                        ${call.time}
                     </span>
                 </div>
             </div>
             <div class="call-actions">
-                <button class="call-btn-action" onclick="startCall('${call.name}', 'voice')">
+                <button class="call-btn-action" onclick="makeCall('${call.username}', 'voice')">
                     <i class="fas fa-phone"></i>
                 </button>
-                <button class="video-btn" onclick="startCall('${call.name}', 'video')">
+                <button class="video-btn" onclick="makeCall('${call.username}', 'video')">
                     <i class="fas fa-video"></i>
                 </button>
-                <button class="delete-btn" onclick="deleteCall(${call.id})">
+            </div>
+        `;
+        container.appendChild(div);
+    });
+}
+
+// ---------- CONTACTS ----------
+function loadContacts() {
+    const contacts = JSON.parse(localStorage.getItem('call_contacts') || '[]');
+    renderContacts(contacts);
+}
+
+function renderContacts(contacts) {
+    const container = $('contactList');
+    container.innerHTML = '';
+    
+    if (contacts.length === 0) {
+        container.innerHTML = `
+            <div class="empty-state">
+                <i class="fas fa-address-book"></i>
+                <h3>No contacts</h3>
+                <p>Add contacts to get started</p>
+            </div>
+        `;
+        return;
+    }
+    
+    contacts.forEach(contact => {
+        const div = document.createElement('div');
+        div.className = 'contact-item';
+        div.innerHTML = `
+            <div class="contact-info">
+                <img src="${contact.avatar || `https://ui-avatars.com/api/?name=${contact.username}&background=2ecc71&color=fff`}" alt="">
+                <div>
+                    <h4>${contact.username}</h4>
+                    <span>${contact.status || 'Online'}</span>
+                </div>
+            </div>
+            <div class="call-actions">
+                <button class="call-btn-action" onclick="makeCall('${contact.username}', 'voice')">
+                    <i class="fas fa-phone"></i>
+                </button>
+                <button class="video-btn" onclick="makeCall('${contact.username}', 'video')">
+                    <i class="fas fa-video"></i>
+                </button>
+                <button class="delete-btn" onclick="removeContact('${contact.username}')">
                     <i class="fas fa-trash"></i>
                 </button>
             </div>
@@ -103,147 +515,118 @@ function renderCalls() {
     });
 }
 
-// ---------- RENDER CONTACTS ----------
-function renderContacts() {
-    const container = document.getElementById('contactList');
-    container.innerHTML = '';
-    
-    App.contacts.forEach(contact => {
-        const div = document.createElement('div');
-        div.className = 'contact-item';
-        div.innerHTML = `
-            <div class="contact-info">
-                <img src="${contact.avatar}" alt="${contact.name}">
-                <div class="contact-details">
-                    <h4>${contact.name}</h4>
-                    <span>${contact.phone} • ${contact.status}</span>
-                </div>
-            </div>
-            <div class="call-actions">
-                <button class="call-btn-action" onclick="startCall('${contact.name}', 'voice')">
-                    <i class="fas fa-phone"></i>
-                </button>
-                <button class="video-btn" onclick="startCall('${contact.name}', 'video')">
-                    <i class="fas fa-video"></i>
-                </button>
-                <button class="${contact.favorite ? 'favorite-btn' : 'favorite-btn'}" onclick="toggleFavorite(${contact.id})">
-                    <i class="${contact.favorite ? 'fas' : 'far'} fa-star" style="${contact.favorite ? 'color:#f1c40f;' : ''}"></i>
-                </button>
-            </div>
-        `;
-        container.appendChild(div);
-    });
-}
-
-// ---------- RENDER FAVORITES ----------
-function renderFavorites() {
-    const container = document.getElementById('favoriteList');
-    container.innerHTML = '';
-    
-    const favorites = App.contacts.filter(c => c.favorite);
-    
-    if (favorites.length === 0) {
-        container.innerHTML = `
-            <div style="text-align:center;padding:40px;color:var(--text-secondary);">
-                <i class="fas fa-star" style="font-size:48px;margin-bottom:15px;display:block;"></i>
-                <h3>No favorites yet</h3>
-                <p>Add contacts to favorites for quick access</p>
-            </div>
-        `;
-        return;
+function addContact() {
+    const username = prompt('Enter username to add:');
+    if (username && username !== currentUser.username) {
+        const contacts = JSON.parse(localStorage.getItem('call_contacts') || '[]');
+        if (!contacts.find(c => c.username === username)) {
+            contacts.push({
+                username: username,
+                avatar: `https://ui-avatars.com/api/?name=${username}&background=2ecc71&color=fff`
+            });
+            localStorage.setItem('call_contacts', JSON.stringify(contacts));
+            renderContacts(contacts);
+            showNotification(`✅ ${username} added to contacts`);
+        } else {
+            alert('Contact already exists!');
+        }
     }
-    
-    favorites.forEach(contact => {
-        const div = document.createElement('div');
-        div.className = 'contact-item';
-        div.innerHTML = `
-            <div class="contact-info">
-                <img src="${contact.avatar}" alt="${contact.name}">
-                <div class="contact-details">
-                    <h4>${contact.name}</h4>
-                    <span>${contact.phone}</span>
-                </div>
-            </div>
-            <div class="call-actions">
-                <button class="call-btn-action" onclick="startCall('${contact.name}', 'voice')">
-                    <i class="fas fa-phone"></i>
-                </button>
-                <button class="video-btn" onclick="startCall('${contact.name}', 'video')">
-                    <i class="fas fa-video"></i>
-                </button>
-                <button class="delete-btn" onclick="toggleFavorite(${contact.id})">
-                    <i class="fas fa-star" style="color:#f1c40f;"></i>
-                </button>
-            </div>
-        `;
-        container.appendChild(div);
-    });
 }
 
-// ---------- SEARCH ----------
-function filterContacts(query) {
-    const items = document.querySelectorAll('.contact-item');
-    items.forEach(item => {
-        const name = item.querySelector('h4').textContent.toLowerCase();
-        item.style.display = name.includes(query) ? 'flex' : 'none';
-    });
-}
-
-function filterCalls(query) {
-    const items = document.querySelectorAll('.call-item');
-    items.forEach(item => {
-        const name = item.querySelector('h4').textContent.toLowerCase();
-        item.style.display = name.includes(query) ? 'flex' : 'none';
-    });
+function removeContact(username) {
+    if (confirm(`Remove ${username} from contacts?`)) {
+        let contacts = JSON.parse(localStorage.getItem('call_contacts') || '[]');
+        contacts = contacts.filter(c => c.username !== username);
+        localStorage.setItem('call_contacts', JSON.stringify(contacts));
+        renderContacts(contacts);
+        showNotification(`❌ ${username} removed`);
+    }
 }
 
 // ---------- CALL FUNCTIONS ----------
-function startCall(name, type) {
-    App.isCalling = true;
-    App.currentCall = { name, type };
+function makeCall(username, type) {
+    if (username === currentUser.username) {
+        alert('You cannot call yourself!');
+        return;
+    }
     
-    const interface = document.getElementById('callInterface');
-    interface.style.display = 'flex';
+    // Show call interface
+    showCallInterface(username, type);
     
-    document.getElementById('callerName').textContent = name;
-    document.getElementById('callerAvatar').src = getAvatar(name);
-    document.getElementById('callStatus').textContent = 'Calling...';
-    document.getElementById('callStatus').style.color = '#f1c40f';
+    // Send call request
+    socket.emit('call_request', {
+        to: username,
+        type: type
+    });
     
-    // Show placeholder
-    document.getElementById('callPlaceholder').style.display = 'flex';
-    document.getElementById('remoteVideo').style.display = 'none';
-    
-    // Hide chat
-    document.getElementById('callChat').style.display = 'none';
-    
-    // Simulate connection
-    setTimeout(() => {
-        document.getElementById('callStatus').textContent = 'Connected';
-        document.getElementById('callStatus').style.color = '#2ecc71';
-        document.getElementById('callPlaceholder').style.display = 'none';
-        document.getElementById('remoteVideo').style.display = 'block';
-        
-        // Show notification
-        showNotification('Call connected', 'success');
-    }, 2000);
+    // Start WebRTC
+    startWebRTC(username, type);
+}
+
+function startCall(type) {
+    if (!currentChat) {
+        alert('Open a chat first!');
+        return;
+    }
+    makeCall(currentChat, type);
+}
+
+function showCallInterface(username, type) {
+    $('callInterface').style.display = 'flex';
+    $('callerName').textContent = username;
+    $('callerAvatar').src = `https://ui-avatars.com/api/?name=${username}&background=f7971e&color=fff`;
+    $('callStatus').textContent = 'Calling...';
+    $('callStatus').style.color = '#f1c40f';
+    $('callPlaceholder').style.display = 'flex';
+    $('remoteVideo').style.display = 'none';
+    isCalling = true;
+}
+
+function hideCallInterface() {
+    $('callInterface').style.display = 'none';
+    isCalling = false;
+    endWebRTC();
+}
+
+function showIncomingCall(data) {
+    $('incomingCall').style.display = 'flex';
+    $('incomingCallerName').textContent = data.from;
+    $('incomingCallerAvatar').src = data.fromAvatar;
+    pendingCall = data;
+}
+
+function acceptCall() {
+    $('incomingCall').style.display = 'none';
+    showCallInterface(pendingCall.from, pendingCall.type);
+    socket.emit('accept_call', { from: pendingCall.from });
+    startWebRTC(pendingCall.from, pendingCall.type);
+}
+
+function rejectCall() {
+    $('incomingCall').style.display = 'none';
+    if (pendingCall) {
+        socket.emit('reject_call', { from: pendingCall.from });
+        pendingCall = null;
+    }
 }
 
 function endCall() {
-    App.isCalling = false;
-    App.currentCall = null;
-    document.getElementById('callInterface').style.display = 'none';
-    
-    // Reset video
-    document.getElementById('callPlaceholder').style.display = 'flex';
-    document.getElementById('remoteVideo').style.display = 'none';
-    document.getElementById('callChat').style.display = 'none';
+    if (isCalling) {
+        socket.emit('end_call', { to: currentChat || pendingCall?.from });
+        hideCallInterface();
+        showNotification('Call ended');
+    }
 }
 
 function toggleMute() {
-    App.isMuted = !App.isMuted;
+    isMuted = !isMuted;
     const btn = document.querySelector('.call-btn:first-child');
-    if (App.isMuted) {
+    if (localStream) {
+        localStream.getAudioTracks().forEach(track => {
+            track.enabled = !isMuted;
+        });
+    }
+    if (isMuted) {
         btn.innerHTML = '<i class="fas fa-microphone-slash"></i><span>Muted</span>';
         btn.style.color = '#e74c3c';
     } else {
@@ -253,22 +636,28 @@ function toggleMute() {
 }
 
 function toggleVideo() {
-    App.isVideoOn = !App.isVideoOn;
+    isVideoOn = !isVideoOn;
     const btn = document.querySelector('.call-btn:nth-child(2)');
-    if (App.isVideoOn) {
+    if (localStream) {
+        localStream.getVideoTracks().forEach(track => {
+            track.enabled = isVideoOn;
+        });
+    }
+    if (isVideoOn) {
         btn.innerHTML = '<i class="fas fa-video"></i><span>Video</span>';
-        document.getElementById('localVideo').style.display = 'block';
+        $('localVideo').style.display = 'block';
+        btn.style.color = '';
     } else {
         btn.innerHTML = '<i class="fas fa-video-slash"></i><span>Video</span>';
+        $('localVideo').style.display = 'none';
         btn.style.color = '#e74c3c';
-        document.getElementById('localVideo').style.display = 'none';
     }
 }
 
 function toggleSpeaker() {
-    App.isSpeakerOn = !App.isSpeakerOn;
+    isSpeakerOn = !isSpeakerOn;
     const btn = document.querySelector('.call-btn:nth-child(3)');
-    if (App.isSpeakerOn) {
+    if (isSpeakerOn) {
         btn.innerHTML = '<i class="fas fa-volume-up"></i><span>Speaker</span>';
         btn.style.color = '#2ecc71';
     } else {
@@ -277,261 +666,205 @@ function toggleSpeaker() {
     }
 }
 
-function toggleChat() {
-    const chat = document.getElementById('callChat');
-    chat.style.display = chat.style.display === 'none' ? 'flex' : 'none';
-}
-
-function sendMessage() {
-    const input = document.getElementById('chatInput');
-    const message = input.value.trim();
-    if (!message) return;
-    
-    const container = document.getElementById('chatMessages');
-    const div = document.createElement('div');
-    div.className = 'message sent';
-    div.innerHTML = `
-        <span>${message}</span>
-        <small>${new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}</small>
-    `;
-    container.appendChild(div);
-    input.value = '';
-    container.scrollTop = container.scrollHeight;
-}
-
-function showMoreOptions() {
-    // Show more options menu
-    alert('More options: Transfer call, Add participant, Record call');
-}
-
-// ---------- NOTIFICATION ----------
-function showNotification(message, type = 'info') {
-    const notification = document.getElementById('notification');
-    notification.classList.add('show');
-    
-    // Update notification content
-    const text = notification.querySelector('.notification-text p');
-    text.textContent = message;
-    
-    if (type === 'success') {
-        notification.querySelector('.notification-icon i').style.color = '#2ecc71';
-    }
-    
-    setTimeout(() => {
-        notification.classList.remove('show');
-    }, 4000);
-}
-
-function showIncomingCall() {
-    const notification = document.getElementById('notification');
-    notification.classList.add('show');
-    document.querySelector('.notification-text h4').textContent = 'Incoming Call';
-    document.querySelector('.notification-text p').textContent = 'Sarah Johnson is calling...';
-}
-
-function acceptCall() {
-    document.getElementById('notification').classList.remove('show');
-    startCall('Sarah Johnson', 'video');
-}
-
-function rejectCall() {
-    document.getElementById('notification').classList.remove('show');
-    showNotification('Call rejected', 'info');
-}
-
-// ---------- CONTACT FUNCTIONS ----------
-function addContact() {
-    showModal('Add Contact', `
-        <div class="form-group">
-            <label>Full Name</label>
-            <input type="text" id="contactName" placeholder="Enter name">
-        </div>
-        <div class="form-group">
-            <label>Phone Number</label>
-            <input type="text" id="contactPhone" placeholder="+1 234 567 890">
-        </div>
-        <div class="form-group">
-            <label>Email</label>
-            <input type="email" id="contactEmail" placeholder="email@example.com">
-        </div>
-        <button class="btn-primary" onclick="saveContact()" style="margin-top:10px;">
-            <i class="fas fa-save"></i> Save Contact
-        </button>
-    `);
-}
-
-function saveContact() {
-    const name = document.getElementById('contactName').value;
-    const phone = document.getElementById('contactPhone').value;
-    
-    if (!name || !phone) {
-        alert('Please fill in name and phone number');
-        return;
-    }
-    
-    App.contacts.push({
-        id: Date.now(),
-        name: name,
-        phone: phone,
-        avatar: `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=3498db&color=fff`,
-        favorite: false,
-        status: 'online'
-    });
-    
-    closeModal();
-    renderContacts();
-    renderFavorites();
-    showNotification('Contact added successfully!', 'success');
-}
-
-function toggleFavorite(id) {
-    const contact = App.contacts.find(c => c.id === id);
-    if (contact) {
-        contact.favorite = !contact.favorite;
-        renderContacts();
-        renderFavorites();
+// ---------- WEBRTC ----------
+async function startWebRTC(username, type) {
+    try {
+        // Get local stream
+        const constraints = {
+            audio: true,
+            video: type === 'video'
+        };
+        
+        localStream = await navigator.mediaDevices.getUserMedia(constraints);
+        $('localVideo').srcObject = localStream;
+        
+        // Create peer connection
+        const configuration = {
+            iceServers: [
+                { urls: 'stun:stun.l.google.com:19302' }
+            ]
+        };
+        
+        peerConnection = new RTCPeerConnection(configuration);
+        
+        // Add local stream
+        localStream.getTracks().forEach(track => {
+            peerConnection.addTrack(track, localStream);
+        });
+        
+        // Handle remote stream
+        peerConnection.ontrack = (event) => {
+            remoteStream = event.streams[0];
+            $('remoteVideo').srcObject = remoteStream;
+            $('remoteVideo').style.display = 'block';
+            $('callPlaceholder').style.display = 'none';
+            $('callStatus').textContent = 'Connected';
+            $('callStatus').style.color = '#2ecc71';
+        };
+        
+        // Handle ICE candidates
+        peerConnection.onicecandidate = (event) => {
+            if (event.candidate) {
+                socket.emit('webrtc_ice', {
+                    to: username,
+                    candidate: event.candidate
+                });
+            }
+        };
+        
+        // Create offer if caller
+        if (isCalling) {
+            const offer = await peerConnection.createOffer();
+            await peerConnection.setLocalDescription(offer);
+            socket.emit('webrtc_offer', {
+                to: username,
+                offer: offer
+            });
+        }
+        
+    } catch (error) {
+        console.error('WebRTC error:', error);
+        showNotification('Failed to start call');
+        hideCallInterface();
     }
 }
 
-function deleteCall(id) {
-    if (confirm('Delete this call record?')) {
-        App.calls = App.calls.filter(c => c.id !== id);
-        renderCalls();
-        showNotification('Call deleted', 'info');
+function handleOffer(data) {
+    if (!peerConnection) return;
+    
+    peerConnection.setRemoteDescription(new RTCSessionDescription(data.offer));
+    peerConnection.createAnswer()
+        .then(answer => {
+            peerConnection.setLocalDescription(answer);
+            socket.emit('webrtc_answer', {
+                to: data.from,
+                answer: answer
+            });
+        });
+}
+
+function handleAnswer(data) {
+    if (!peerConnection) return;
+    peerConnection.setRemoteDescription(new RTCSessionDescription(data.answer));
+}
+
+function handleIceCandidate(data) {
+    if (!peerConnection) return;
+    peerConnection.addIceCandidate(new RTCIceCandidate(data.candidate));
+}
+
+function endWebRTC() {
+    if (peerConnection) {
+        peerConnection.close();
+        peerConnection = null;
+    }
+    if (localStream) {
+        localStream.getTracks().forEach(track => track.stop());
+        localStream = null;
+    }
+    if (remoteStream) {
+        remoteStream = null;
     }
 }
 
-// ---------- SETTINGS ----------
-function toggleTheme() {
-    App.darkMode = !App.darkMode;
-    const root = document.documentElement;
-    if (App.darkMode) {
-        root.style.setProperty('--bg-primary', '#ffffff');
-        root.style.setProperty('--bg-secondary', '#f5f5f5');
-        root.style.setProperty('--text-primary', '#0a0e1a');
-        root.style.setProperty('--text-secondary', 'rgba(0,0,0,0.7)');
-        root.style.setProperty('--border-color', 'rgba(0,0,0,0.1)');
-        root.style.setProperty('--bg-card', 'rgba(0,0,0,0.05)');
-        document.querySelector('.icon-btn i').className = 'fas fa-sun';
-    } else {
-        root.style.setProperty('--bg-primary', '#0a0e1a');
-        root.style.setProperty('--bg-secondary', '#1a1a2e');
-        root.style.setProperty('--text-primary', '#ffffff');
-        root.style.setProperty('--text-secondary', 'rgba(255,255,255,0.7)');
-        root.style.setProperty('--border-color', 'rgba(255,255,255,0.1)');
-        root.style.setProperty('--bg-card', 'rgba(255,255,255,0.05)');
-        document.querySelector('.icon-btn i').className = 'fas fa-moon';
-    }
+function startCallSession(data) {
+    // Call connected
+    $('callStatus').textContent = 'Connected';
+    $('callStatus').style.color = '#2ecc71';
 }
 
-function showSettings() {
-    document.querySelectorAll('.sidebar-nav a').forEach(l => l.classList.remove('active'));
-    document.querySelector('[data-tab="settings"]').classList.add('active');
-    document.querySelectorAll('.content-section').forEach(s => s.classList.remove('active'));
-    document.getElementById('settingsSection').classList.add('active');
-}
-
-// ---------- MODAL ----------
-function showModal(title, bodyHTML) {
-    document.getElementById('modalTitle').textContent = title;
-    document.getElementById('modalBody').innerHTML = bodyHTML;
-    document.getElementById('modal').classList.add('show');
-}
-
-function closeModal() {
-    document.getElementById('modal').classList.remove('show');
+function endCallSession() {
+    hideCallInterface();
+    showNotification('Call ended');
 }
 
 // ---------- UTILITY ----------
-function getAvatar(name) {
-    const contact = App.contacts.find(c => c.name === name);
-    return contact ? contact.avatar : `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=f7971e&color=fff`;
+function formatTime(timestamp) {
+    const date = new Date(timestamp);
+    return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 }
 
-function startNewCall() {
-    showModal('New Call', `
-        <div class="form-group">
-            <label>Contact Name</label>
-            <input type="text" id="callContact" placeholder="Search or enter name" list="contactList">
-            <datalist id="contactList">
-                ${App.contacts.map(c => `<option value="${c.name}">`).join('')}
-            </datalist>
-        </div>
-        <div style="display:flex;gap:10px;margin-top:10px;">
-            <button class="btn-primary" onclick="startCallFromModal('voice')" style="flex:1;">
-                <i class="fas fa-phone"></i> Voice Call
-            </button>
-            <button class="btn-primary" onclick="startCallFromModal('video')" style="flex:1;">
-                <i class="fas fa-video"></i> Video Call
-            </button>
-        </div>
-    `);
+function showNotification(message) {
+    // Simple notification
+    const div = document.createElement('div');
+    div.className = 'toast-notification';
+    div.textContent = message;
+    div.style.cssText = `
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        background: #1a1a2e;
+        color: white;
+        padding: 15px 25px;
+        border-radius: 12px;
+        border: 1px solid rgba(255,255,255,0.1);
+        z-index: 9999;
+        animation: slideUp 0.5s ease;
+        box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+    `;
+    document.body.appendChild(div);
+    
+    setTimeout(() => {
+        div.style.opacity = '0';
+        div.style.transition = 'opacity 0.5s';
+        setTimeout(() => div.remove(), 500);
+    }, 3000);
 }
 
-function startCallFromModal(type) {
-    const name = document.getElementById('callContact').value;
-    if (!name) {
-        alert('Please enter a contact name');
-        return;
+function updateUserStatus(username, online) {
+    // Update UI for user status
+    if (currentChat === username) {
+        $('chatUserStatus').textContent = online ? 'Online' : 'Offline';
+        $('chatUserStatus').style.color = online ? '#2ecc71' : '#e74c3c';
     }
-    closeModal();
-    startCall(name, type);
+}
+
+function updateOnlineUsers(users) {
+    // Update contact list status
+    const contacts = JSON.parse(localStorage.getItem('call_contacts') || '[]');
+    contacts.forEach(contact => {
+        const user = users.find(u => u.username === contact.username);
+        if (user) {
+            contact.status = user.online ? 'Online' : 'Offline';
+        }
+    });
+    localStorage.setItem('call_contacts', JSON.stringify(contacts));
+    renderContacts(contacts);
 }
 
 function logout() {
-    if (confirm('Are you sure you want to logout?')) {
-        localStorage.removeItem('procall_user');
-        window.location.href = 'login.html';
+    if (socket) {
+        socket.disconnect();
     }
+    localStorage.removeItem('call_user');
+    window.location.href = 'index.html';
 }
 
-// ---------- KEYBOARD SHORTCUTS ----------
-document.addEventListener('keydown', function(e) {
-    if (e.key === 'Escape') {
-        if (document.getElementById('callInterface').style.display !== 'none') {
-            endCall();
-        }
-        if (document.getElementById('modal').classList.contains('show')) {
-            closeModal();
-        }
+// ---------- INIT ----------
+document.addEventListener('DOMContentLoaded', function() {
+    if (window.location.pathname.includes('dashboard.html')) {
+        initDashboard();
     }
 });
 
-// ---------- SIMULATE INCOMING CALL ----------
-setTimeout(() => {
-    showIncomingCall();
-}, 5000);
-
 // Make functions globally accessible
+window.login = login;
+window.signup = signup;
+window.logout = logout;
+window.showSignup = showSignup;
+window.closeSignup = closeSignup;
+window.startNewChat = startNewChat;
+window.sendMessage = sendMessage;
+window.openChat = openChat;
+window.closeChat = closeChat;
+window.makeCall = makeCall;
 window.startCall = startCall;
 window.endCall = endCall;
+window.acceptCall = acceptCall;
+window.rejectCall = rejectCall;
 window.toggleMute = toggleMute;
 window.toggleVideo = toggleVideo;
 window.toggleSpeaker = toggleSpeaker;
-window.toggleChat = toggleChat;
-window.sendMessage = sendMessage;
-window.showMoreOptions = showMoreOptions;
 window.addContact = addContact;
-window.saveContact = saveContact;
-window.toggleFavorite = toggleFavorite;
-window.deleteCall = deleteCall;
-window.toggleTheme = toggleTheme;
-window.showSettings = showSettings;
-window.startNewCall = startNewCall;
-window.startCallFromModal = startCallFromModal;
-window.logout = logout;
-window.showNotification = showNotification;
-window.closeModal = closeModal;
-window.showModal = showModal;
-window.acceptCall = acceptCall;
-window.rejectCall = rejectCall;
-window.renderCalls = renderCalls;
-window.renderContacts = renderContacts;
-window.renderFavorites = renderFavorites;
-window.filterContacts = filterContacts;
-window.filterCalls = filterCalls;
-window.searchContacts = function() {
-    const query = document.getElementById('searchInput').value.toLowerCase();
-    filterContacts(query);
-    filterCalls(query);
-};
+window.removeContact = removeContact;
+window.toggleEmoji = () => {};

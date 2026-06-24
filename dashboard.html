@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>📞 Call & Chat - Dashboard</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <div class="logo">
+                    <i class="fas fa-phone-alt"></i>
+                    <span>Call & Chat</span>
+                </div>
+            </div>
+            
+            <div class="user-profile" id="userProfile">
+                <img id="profileAvatar" src="" alt="Profile">
+                <div class="user-info">
+                    <h4 id="profileName">User</h4>
+                    <span id="profileStatus">Online</span>
+                </div>
+            </div>
+            
+            <nav class="sidebar-nav">
+                <a href="#" class="active" data-tab="chats">
+                    <i class="fas fa-comment-dots"></i>
+                    <span>Chats</span>
+                </a>
+                <a href="#" data-tab="calls">
+                    <i class="fas fa-phone"></i>
+                    <span>Calls</span>
+                </a>
+                <a href="#" data-tab="contacts">
+                    <i class="fas fa-address-book"></i>
+                    <span>Contacts</span>
+                </a>
+            </nav>
+            
+            <div class="sidebar-footer">
+                <button class="btn-logout" onclick="logout()">
+                    <i class="fas fa-sign-out-alt"></i> Logout
+                </button>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Chats Section -->
+            <section id="chatsSection" class="content-section active">
+                <div class="section-header">
+                    <h2>💬 Chats</h2>
+                    <button class="btn-primary" onclick="startNewChat()">
+                        <i class="fas fa-plus"></i> New Chat
+                    </button>
+                </div>
+                
+                <div class="chat-list" id="chatList">
+                    <!-- Chat list will be rendered here -->
+                </div>
+            </section>
+
+            <!-- Calls Section -->
+            <section id="callsSection" class="content-section">
+                <div class="section-header">
+                    <h2>📞 Recent Calls</h2>
+                </div>
+                <div class="call-list" id="callList">
+                    <!-- Calls will be rendered here -->
+                </div>
+            </section>
+
+            <!-- Contacts Section -->
+            <section id="contactsSection" class="content-section">
+                <div class="section-header">
+                    <h2>👥 Contacts</h2>
+                    <button class="btn-primary" onclick="addContact()">
+                        <i class="fas fa-user-plus"></i> Add Contact
+                    </button>
+                </div>
+                <div class="contact-list" id="contactList">
+                    <!-- Contacts will be rendered here -->
+                </div>
+            </section>
+
+            <!-- Chat Window -->
+            <div class="chat-window" id="chatWindow" style="display:none;">
+                <div class="chat-header">
+                    <div class="chat-user-info">
+                        <img id="chatUserAvatar" src="" alt="">
+                        <div>
+                            <h4 id="chatUserName">User</h4>
+                            <span id="chatUserStatus">Online</span>
+                        </div>
+                    </div>
+                    <div class="chat-actions">
+                        <button class="icon-btn" onclick="startCall('voice')">
+                            <i class="fas fa-phone"></i>
+                        </button>
+                        <button class="icon-btn" onclick="startCall('video')">
+                            <i class="fas fa-video"></i>
+                        </button>
+                        <button class="icon-btn" onclick="closeChat()">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="chat-messages" id="chatMessages">
+                    <!-- Messages will be rendered here -->
+                </div>
+                
+                <div class="chat-input">
+                    <button class="emoji-btn" onclick="toggleEmoji()">
+                        <i class="fas fa-smile"></i>
+                    </button>
+                    <input type="text" id="messageInput" placeholder="Type a message..." 
+                           onkeydown="if(event.key==='Enter') sendMessage()">
+                    <button class="send-btn" onclick="sendMessage()">
+                        <i class="fas fa-paper-plane"></i>
+                    </button>
+                </div>
+            </div>
+        </main>
+
+        <!-- Call Interface -->
+        <div class="call-interface" id="callInterface" style="display:none;">
+            <div class="call-container">
+                <div class="call-header">
+                    <button class="close-call" onclick="endCall()">
+                        <i class="fas fa-times"></i>
+                    </button>
+                    <div class="call-user">
+                        <img id="callerAvatar" src="" alt="">
+                        <h3 id="callerName">Calling...</h3>
+                        <span id="callStatus">Connecting...</span>
+                    </div>
+                </div>
+                
+                <div class="call-video">
+                    <video id="remoteVideo" class="remote-video" autoplay playsinline></video>
+                    <video id="localVideo" class="local-video" autoplay playsinline muted></video>
+                    <div class="call-placeholder" id="callPlaceholder">
+                        <i class="fas fa-user-circle"></i>
+                        <h3>Waiting for connection...</h3>
+                    </div>
+                </div>
+                
+                <div class="call-controls">
+                    <button class="call-btn" onclick="toggleMute()">
+                        <i class="fas fa-microphone"></i>
+                        <span>Mute</span>
+                    </button>
+                    <button class="call-btn" onclick="toggleVideo()">
+                        <i class="fas fa-video"></i>
+                        <span>Video</span>
+                    </button>
+                    <button class="call-btn" onclick="toggleSpeaker()">
+                        <i class="fas fa-volume-up"></i>
+                        <span>Speaker</span>
+                    </button>
+                    <button class="call-btn end-call" onclick="endCall()">
+                        <i class="fas fa-phone-slash"></i>
+                        <span>End</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Incoming Call Notification -->
+        <div class="incoming-call" id="incomingCall" style="display:none;">
+            <div class="incoming-call-content">
+                <div class="caller-info">
+                    <img id="incomingCallerAvatar" src="" alt="">
+                    <h3 id="incomingCallerName">Caller</h3>
+                    <span>Incoming Call...</span>
+                </div>
+                <div class="call-actions">
+                    <button class="accept" onclick="acceptCall()">
+                        <i class="fas fa-phone"></i>
+                    </button>
+                    <button class="reject" onclick="rejectCall()">
+                        <i class="fas fa-phone-slash"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Socket.io -->
+    <script src="https://cdn.socket.io/4.5.0/socket.io.min.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>

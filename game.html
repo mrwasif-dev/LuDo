@@ -3,12 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🎲 Ludo Kingdom - Original Game</title>
+    <title>🎲 Original Ludo Game</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
     <div class="game-wrapper">
-        <!-- Navigation -->
+        <!-- Header -->
         <nav class="game-nav">
             <div class="nav-brand">
                 <span>🎲</span>
@@ -16,96 +16,52 @@
             </div>
             <div class="nav-user">
                 <div class="user-stats">
-                    <span class="stat-item">👤 <span id="currentUser">Guest</span></span>
-                    <span class="stat-item">🆔 <span id="userWid">N/A</span></span>
-                    <span class="stat-item coin-display">💰 <span id="userCoins">0</span></span>
-                    <span class="stat-item">🏆 <span id="userWins">0</span></span>
+                    <span>👤 <span id="currentUser">Guest</span></span>
+                    <span>💰 <span id="userCoins">0</span></span>
+                    <span>🏆 <span id="userWins">0</span></span>
                 </div>
-                <div class="nav-actions">
-                    <button class="btn-danger" onclick="logout()">🚪 Logout</button>
-                </div>
+                <button class="btn-danger" onclick="logout()">🚪 Logout</button>
             </div>
         </nav>
 
         <!-- Game Modes -->
-        <section class="game-modes">
-            <button class="mode-btn active" data-mode="2player" onclick="selectMode('2player')">
-                <span>👥</span> 2 Players
-            </button>
-            <button class="mode-btn" data-mode="4player" onclick="selectMode('4player')">
-                <span>👥👥</span> 4 Players
-            </button>
-            <button class="mode-btn" data-mode="computer" onclick="selectMode('computer')">
-                <span>💻</span> vs Computer
-            </button>
-            <button class="mode-btn" data-mode="online" onclick="selectMode('online')">
-                <span>🌐</span> Online
-            </button>
-        </section>
+        <div class="game-modes">
+            <button class="mode-btn active" onclick="startGame(2)">👥 2 Players</button>
+            <button class="mode-btn" onclick="startGame(4)">👥👥 4 Players</button>
+            <button class="mode-btn" onclick="startGame(0)">💻 vs Computer</button>
+        </div>
 
-        <!-- Main Game Area -->
+        <!-- Main Game -->
         <div class="game-area">
-            <div class="game-board-wrapper">
-                <div class="ludo-board" id="ludoBoard">
-                    <!-- Board rendered by JavaScript -->
-                </div>
+            <div class="board-container">
+                <div class="ludo-board" id="ludoBoard"></div>
             </div>
             
-            <div class="game-sidebar">
-                <div class="game-controls">
-                    <div class="dice-container">
-                        <div class="dice-display" id="diceResult">🎲</div>
-                        <button class="btn-roll" onclick="rollDice()" id="rollBtn">
-                            Roll Dice
-                        </button>
-                    </div>
-                    <div class="turn-indicator" id="turnIndicator">
-                        <span>⏳ Waiting for turn...</span>
-                    </div>
+            <div class="side-panel">
+                <div class="dice-section">
+                    <div class="dice" id="dice">🎲</div>
+                    <button class="roll-btn" onclick="rollDice()" id="rollBtn">Roll Dice</button>
+                    <div class="turn-info" id="turnInfo">Waiting...</div>
                 </div>
                 
-                <div class="game-info">
-                    <div class="status-card">
-                        <h4>📊 Game Status</h4>
-                        <p id="gameStatus">Select mode and start playing!</p>
-                    </div>
-                    
-                    <div class="players-list">
-                        <h4>👥 Players</h4>
-                        <div id="playerItems"></div>
-                    </div>
-                    
-                    <div class="game-history">
-                        <h4>📜 Game Log</h4>
-                        <div id="historyLog"></div>
-                    </div>
+                <div class="players-section">
+                    <h4>👥 Players</h4>
+                    <div id="playersList"></div>
+                </div>
+                
+                <div class="history-section">
+                    <h4>📜 History</h4>
+                    <div id="gameLog"></div>
                 </div>
             </div>
         </div>
 
-        <!-- Game Over Modal -->
-        <div class="modal" id="gameOverModal">
+        <!-- Winner Modal -->
+        <div class="modal" id="winnerModal">
             <div class="modal-content">
-                <div class="modal-header">
-                    <h2>🏆 Game Over!</h2>
-                </div>
-                <div class="modal-body">
-                    <p id="winnerMessage">Player wins!</p>
-                    <div class="modal-stats">
-                        <div>
-                            <span>Coins Earned</span>
-                            <span id="coinsEarned">+0</span>
-                        </div>
-                        <div>
-                            <span>Total Coins</span>
-                            <span id="totalCoinsEarned">0</span>
-                        </div>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button class="btn-primary" onclick="restartGame()">🔄 Play Again</button>
-                    <button class="btn-secondary" onclick="closeModal()">Close</button>
-                </div>
+                <h2>🏆 Game Over!</h2>
+                <p id="winnerText">Player wins!</p>
+                <button class="btn-primary" onclick="restartGame()">🔄 Play Again</button>
             </div>
         </div>
     </div>

@@ -3,70 +3,267 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>📞 Call & Chat - Login</title>
-    <link rel="stylesheet" href="style.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <title>📞 Ludo Call & Chat</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            background: linear-gradient(135deg, #0a0e1a 0%, #1a1a2e 50%, #16213e 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: #fff;
+            padding: 20px;
+        }
+        
+        .container {
+            background: rgba(255,255,255,0.05);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 24px;
+            padding: 40px;
+            width: 100%;
+            max-width: 420px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .header .logo {
+            font-size: 48px;
+            margin-bottom: 10px;
+        }
+        
+        .header h1 {
+            font-size: 28px;
+            font-weight: 700;
+            background: linear-gradient(135deg, #f7971e, #ffd200);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        .header p {
+            color: rgba(255,255,255,0.6);
+            font-size: 14px;
+            margin-top: 5px;
+        }
+        
+        .form-group {
+            margin-bottom: 18px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 6px;
+            font-size: 13px;
+            color: rgba(255,255,255,0.7);
+            font-weight: 500;
+        }
+        
+        .form-group input {
+            width: 100%;
+            padding: 12px 16px;
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 12px;
+            background: rgba(255,255,255,0.05);
+            color: #fff;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+        
+        .form-group input:focus {
+            outline: none;
+            border-color: #f7971e;
+            box-shadow: 0 0 0 3px rgba(247,151,30,0.1);
+        }
+        
+        .form-group input::placeholder {
+            color: rgba(255,255,255,0.3);
+        }
+        
+        .btn-primary {
+            width: 100%;
+            padding: 14px;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            background: linear-gradient(135deg, #f7971e, #ffd200);
+            color: #0a0e1a;
+            transition: all 0.3s;
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(247,151,30,0.3);
+        }
+        
+        .footer {
+            text-align: center;
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid rgba(255,255,255,0.05);
+        }
+        
+        .footer a {
+            color: #f7971e;
+            text-decoration: none;
+            cursor: pointer;
+        }
+        
+        .footer a:hover {
+            text-decoration: underline;
+        }
+        
+        .error-message {
+            margin-top: 15px;
+            padding: 10px;
+            border-radius: 8px;
+            background: rgba(231,76,60,0.2);
+            color: #ff6b6b;
+            text-align: center;
+            display: none;
+            font-size: 13px;
+        }
+        
+        .error-message.show {
+            display: block;
+        }
+        
+        .success-message {
+            margin-top: 15px;
+            padding: 10px;
+            border-radius: 8px;
+            background: rgba(46,213,115,0.2);
+            color: #2ecc71;
+            text-align: center;
+            display: none;
+            font-size: 13px;
+        }
+        
+        .success-message.show {
+            display: block;
+        }
+    </style>
 </head>
 <body>
-    <div class="login-container">
-        <div class="login-card">
-            <div class="login-header">
-                <div class="logo">
-                    <i class="fas fa-phone-alt"></i>
-                    <span>Call & Chat</span>
-                </div>
-                <p>Connect with friends & family</p>
+    <div class="container">
+        <div class="header">
+            <div class="logo">🎲</div>
+            <h1>Ludo Call & Chat</h1>
+            <p>Connect with friends & family</p>
+        </div>
+        
+        <form id="loginForm">
+            <div class="form-group">
+                <label>Username</label>
+                <input type="text" id="username" placeholder="Enter your username" required>
             </div>
-            
-            <form id="loginForm" onsubmit="login(event)">
-                <div class="form-group">
-                    <label>Username</label>
-                    <input type="text" id="username" placeholder="Enter your username" required>
-                </div>
-                <div class="form-group">
-                    <label>Password</label>
-                    <input type="password" id="password" placeholder="Enter your password" required>
-                </div>
-                <button type="submit" class="btn-primary">
-                    <i class="fas fa-sign-in-alt"></i> Login
-                </button>
-            </form>
-            
-            <div class="login-footer">
-                <p>Don't have an account? <a href="#" onclick="showSignup()">Sign up</a></p>
+            <div class="form-group">
+                <label>Password</label>
+                <input type="password" id="password" placeholder="Enter your password" required>
             </div>
-            
-            <div id="errorMessage" class="error-message"></div>
+            <button type="submit" class="btn-primary">Sign In</button>
+        </form>
+        
+        <div id="errorMessage" class="error-message"></div>
+        <div id="successMessage" class="success-message"></div>
+        
+        <div class="footer">
+            <p>Don't have an account? <a href="#" onclick="showSignup()">Create one</a></p>
         </div>
     </div>
 
-    <!-- Signup Modal -->
-    <div class="modal" id="signupModal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3>Create Account</h3>
-                <button class="close-modal" onclick="closeSignup()">&times;</button>
-            </div>
-            <form onsubmit="signup(event)">
-                <div class="form-group">
-                    <label>Username</label>
-                    <input type="text" id="signupUsername" placeholder="Choose username" required>
-                </div>
-                <div class="form-group">
-                    <label>Password</label>
-                    <input type="password" id="signupPassword" placeholder="Create password" required>
-                </div>
-                <div class="form-group">
-                    <label>Display Name</label>
-                    <input type="text" id="signupDisplayName" placeholder="Your full name">
-                </div>
-                <button type="submit" class="btn-primary">
-                    <i class="fas fa-user-plus"></i> Create Account
-                </button>
-            </form>
-        </div>
-    </div>
-
-    <script src="script.js"></script>
+    <script>
+        // ---------- AUTH ----------
+        function login(event) {
+            event.preventDefault();
+            
+            const username = document.getElementById('username').value.trim();
+            const password = document.getElementById('password').value.trim();
+            
+            if (!username || !password) {
+                showError('Please fill in all fields');
+                return;
+            }
+            
+            // Check if user exists
+            const users = JSON.parse(localStorage.getItem('ludo_users') || '[]');
+            const user = users.find(u => u.username === username && u.password === password);
+            
+            if (!user) {
+                showError('Invalid username or password');
+                return;
+            }
+            
+            // Save session
+            const session = {
+                username: username,
+                avatar: `https://ui-avatars.com/api/?name=${username}&background=f7971e&color=fff`
+            };
+            localStorage.setItem('ludo_session', JSON.stringify(session));
+            
+            showSuccess('Login successful! Redirecting...');
+            
+            setTimeout(() => {
+                window.location.href = 'dashboard.html';
+            }, 1000);
+        }
+        
+        function showSignup() {
+            const username = prompt('Choose a username:');
+            if (!username) return;
+            
+            const password = prompt('Choose a password:');
+            if (!password) return;
+            
+            // Save user
+            const users = JSON.parse(localStorage.getItem('ludo_users') || '[]');
+            
+            if (users.find(u => u.username === username)) {
+                alert('❌ Username already exists!');
+                return;
+            }
+            
+            users.push({ username, password });
+            localStorage.setItem('ludo_users', JSON.stringify(users));
+            
+            alert('✅ Account created! Please login.');
+            document.getElementById('username').value = username;
+        }
+        
+        function showError(message) {
+            const el = document.getElementById('errorMessage');
+            el.textContent = message;
+            el.className = 'error-message show';
+            setTimeout(() => {
+                el.className = 'error-message';
+            }, 3000);
+        }
+        
+        function showSuccess(message) {
+            const el = document.getElementById('successMessage');
+            el.textContent = message;
+            el.className = 'success-message show';
+            setTimeout(() => {
+                el.className = 'success-message';
+            }, 3000);
+        }
+        
+        // ---------- EVENT LISTENERS ----------
+        document.addEventListener('DOMContentLoaded', function() {
+            document.getElementById('loginForm').addEventListener('submit', login);
+        });
+    </script>
 </body>
 </html>
